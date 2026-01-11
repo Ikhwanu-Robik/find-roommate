@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 
@@ -60,6 +60,19 @@ function displayValidationError(errors) {
 
   alert("Form Inputs Invalid\n" + allStringified);
 }
+
+function redirectIfLoggedIn() {
+  axios
+    .get("http://api.find-roommate.test/api/me", {
+      withCredentials: true,
+      withXSRFToken: true,
+    })
+    .then((response) => {
+      router.push("/find-roommate");
+    });
+}
+
+onMounted(redirectIfLoggedIn);
 </script>
 
 <template>
