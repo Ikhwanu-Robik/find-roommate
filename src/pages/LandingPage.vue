@@ -14,7 +14,9 @@ import IconDocumentation from "@/components/icons/IconDocumentation.vue";
         <i>In this economy</i> siapa sih yang bisa <i>afford</i>
         kos sama kontrakan sendirian?
       </p>
-      <button>Cari Teman</button>
+      <RouterLink to="/find-roommate">
+        <button>Cari Teman</button>
+      </RouterLink>
     </main>
   </div>
 </template>

@@ -1,6 +1,9 @@
 <script setup>
 import { ref } from "vue";
 import axios from "axios";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 let phone = ref("");
 let password = ref("");
@@ -23,6 +26,7 @@ function login() {
         })
         .then((response) => {
           alert("log in successful");
+          router.push("/find-roommate");
         })
         .catch((e) => {
           console.log(e);
