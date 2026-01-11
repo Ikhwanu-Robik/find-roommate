@@ -15,11 +15,13 @@ import { createWebHashHistory, createRouter } from "vue-router";
 import FindRoommatePage from "./pages/FindRoommatePage.vue";
 import LandingPage from "./pages/LandingPage.vue";
 import LoginPage from "./pages/LoginPage.vue";
+import LogoutPage from "./pages/LogoutPage.vue";
 
 const routes = [
   { path: "/", component: LandingPage },
   { path: "/login", component: LoginPage },
   { path: "/find-roommate", component: FindRoommatePage },
+  { path: "/logout", component: LogoutPage },
 ];
 
 const router = createRouter({

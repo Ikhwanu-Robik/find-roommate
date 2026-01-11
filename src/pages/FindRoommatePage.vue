@@ -110,6 +110,10 @@ onMounted(() => {
         <span class="link-icon">👤</span>
         <span>profil</span>
       </RouterLink>
+      <RouterLink to="/logout">
+        <span class="link-icon">❌</span>
+        <span>logout</span>
+      </RouterLink>
     </nav>
   </div>
 </template>
