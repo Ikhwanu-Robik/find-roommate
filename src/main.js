@@ -16,9 +16,11 @@ import FindRoommatePage from "./pages/FindRoommatePage.vue";
 import LandingPage from "./pages/LandingPage.vue";
 import LoginPage from "./pages/LoginPage.vue";
 import LogoutPage from "./pages/LogoutPage.vue";
+import SignupPage from "./pages/SignupPage.vue";
 
 const routes = [
   { path: "/", component: LandingPage },
+  { path: "/signup", component: SignupPage },
   { path: "/login", component: LoginPage },
   { path: "/find-roommate", component: FindRoommatePage },
   { path: "/logout", component: LogoutPage },
