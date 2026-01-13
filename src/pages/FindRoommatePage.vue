@@ -12,18 +12,18 @@ function ensureAuthenticated() {
       withXSRFToken: true,
     })
     .then((response) => {
-      if (response.status == 200) {
-        document.getElementById("container").style.display = "flex";
-      }
+      document.getElementById("container").style.display = "flex";
     })
     .catch((error) => {
-      if (error.status != 401) {
-        console.log(error);
-        alert("Server tidak dapat dihubungi, coba lagi nanti");
-        router.push("/");
-      } else if (error.status == 401) {
-        router.push("/login");
+      if (error.response) {
+        if (error.response.status == 401) {
+          router.push("/login");
+        } else {
+          alert("Server tidak dapat dihubungi, coba lagi nanti");
+          router.push("/");
+        }
       }
+      console.log(error);
     });
 }
 

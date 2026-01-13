@@ -1,7 +1,3 @@
-<script setup>
-import IconDocumentation from "@/components/icons/IconDocumentation.vue";
-</script>
-
 <template>
   <div id="container">
     <header>
