@@ -17,6 +17,7 @@ import LandingPage from "./pages/LandingPage.vue";
 import LoginPage from "./pages/LoginPage.vue";
 import LogoutPage from "./pages/LogoutPage.vue";
 import SignupPage from "./pages/SignupPage.vue";
+import EditProfilePage from "./pages/EditProfilePage.vue";
 
 const routes = [
   { path: "/", component: LandingPage },
@@ -24,6 +25,7 @@ const routes = [
   { path: "/login", component: LoginPage },
   { path: "/find-roommate", component: FindRoommatePage },
   { path: "/logout", component: LogoutPage },
+  { path: "/profile", component: EditProfilePage },
 ];
 
 const router = createRouter({
