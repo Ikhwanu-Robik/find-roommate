@@ -18,6 +18,8 @@ import LoginPage from "./pages/LoginPage.vue";
 import LogoutPage from "./pages/LogoutPage.vue";
 import SignupPage from "./pages/SignupPage.vue";
 import EditProfilePage from "./pages/EditProfilePage.vue";
+import ChatHistoryPage from "./pages/ChatHistoryPage.vue";
+import PrivateChatPage from "./pages/PrivateChatPage.vue";
 
 const routes = [
   { path: "/", component: LandingPage },
@@ -26,6 +28,8 @@ const routes = [
   { path: "/find-roommate", component: FindRoommatePage },
   { path: "/logout", component: LogoutPage },
   { path: "/profile", component: EditProfilePage },
+  { path: "/chats", component: ChatHistoryPage },
+  { path: "/chats/:id", component: PrivateChatPage },
 ];
 
 const router = createRouter({

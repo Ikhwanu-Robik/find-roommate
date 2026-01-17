@@ -1,9 +1,39 @@
 <script setup>
+import ContactListItem from "@/components/ContactListItem.vue";
 import axios from "axios";
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+
+let self = ref(null);
+let chat_rooms = ref([]);
+
+function getAcquintedProfiles() {
+  axios
+    .get("http://api.find-roommate.test/api/chat-rooms", {
+      withCredentials: true,
+      withXSRFToken: true,
+    })
+    .then((response) => {
+      chat_rooms.value = response.data.chat_rooms;
+    })
+    .catch((error) => {
+      alert("Can't get your chat history. Please try again later");
+      console.log(error);
+    });
+}
+
+function getSelf() {
+  axios
+    .get("http://api.find-roommate.test/api/me", {
+      withCredentials: true,
+      withXSRFToken: true,
+    })
+    .then((response) => {
+      self.value = response.data.user.profile;
+    });
+}
 
 function ensureAuthenticated() {
   axios
@@ -27,75 +57,24 @@ function ensureAuthenticated() {
     });
 }
 
-async function setMap() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setMapAtCoords(position.coords.latitude, position.coords.longitude);
-      },
-      () => {
-        console.log(
-          "Can't get current position. Using default Latitude and Longitude."
-        );
-
-        setMapAtCoords();
-      }
-    );
-  } else {
-    console.log(
-      "Geolocation not supported by this browser. Using default Latitude and Longitude."
-    );
-
-    setMapAtCoords();
-  }
-}
-
-function setMapAtCoords(lat = -7.8846, lon = 111.046) {
-  let map = L.map("map").setView([lat, lon], 12);
-
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution:
-      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(map);
-}
-
 onMounted(() => {
   ensureAuthenticated();
-  setMap();
+  getSelf();
+  getAcquintedProfiles();
 });
 </script>
 
 <template>
   <div id="container">
     <header>
-      <h1>Cari Teman BagiSewa</h1>
+      <h1>Riwayat Chat</h1>
     </header>
     <main>
-      <form action="/find-roommate" method="post">
-        <label for="age_range">Usia</label>
-        <select name="age_range" id="age_range">
-          <option value="18-24">18 - 24 Tahun</option>
-          <option value="25-30">25 - 30 Tahun</option>
-          <option value="31-40">31 - 40 Tahun</option>
-        </select>
-        <label for="gender">Gender</label>
-        <select name="gender" id="gender">
-          <option value="male">Cowo</option>
-          <option value="female">Cewe</option>
-        </select>
-        <label for="bio">Deskripsi</label>
-        <textarea
-          name="bio"
-          id="bio"
-          cols="30"
-          rows="10"
-          placeholder="deskripsikan vibes yang kamu cari"
-        ></textarea>
-        <label for="lodging_id">Kos</label>
-        <div id="map"></div>
-        <button @click.prevent.stop="">Cari</button>
-      </form>
+      <ul class="chats-list" v-if="self && chat_rooms">
+        <li v-for="chat_room in chat_rooms" :key="chat_room.id">
+          <ContactListItem :chat_room="chat_room" :self="self"/>
+        </li>
+      </ul>
     </main>
     <nav>
       <RouterLink to="/find-roommate">
@@ -149,21 +128,9 @@ main {
   gap: 2em;
 }
 
-main form {
-  display: flex;
-  flex-direction: column;
-}
-
-main form #map {
-  background-color: white;
-  color: black;
-  height: 15em;
-}
-
-main form button {
-  width: 80%;
-  align-self: center;
-  margin-top: 1em;
+main .chats-list {
+    list-style-type: none;
+    width: 100vw;
 }
 
 nav {
