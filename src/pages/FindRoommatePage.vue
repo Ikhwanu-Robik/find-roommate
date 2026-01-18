@@ -1,9 +1,22 @@
 <script setup>
 import axios from "axios";
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+
+const ageRanges = [
+  { label: "18 - 24 Tahun", value: "18-24" },
+  { label: "25 - 30 Tahun", value: "25-30" },
+];
+
+const genders = [
+  { label: "Cowo", value: "male" },
+  { label: "Cewe", value: "female" },
+];
+
+let errorDialog = ref();
+let errorMessage = ref();
 
 function ensureAuthenticated() {
   axios
@@ -19,7 +32,8 @@ function ensureAuthenticated() {
         if (error.response.status == 401) {
           router.push("/login");
         } else {
-          alert("Server tidak dapat dihubungi, coba lagi nanti");
+          errorMessage.value("Server tidak dapat dihubungi, coba lagi nanti");
+          errorDialog.value.visible = true;
           router.push("/");
         }
       }
@@ -67,130 +81,131 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="container">
-    <header>
+  <div class="find-page">
+    <!-- Header -->
+    <header class="page-header">
       <h1>Cari Teman BagiSewa</h1>
     </header>
-    <main>
-      <form action="/find-roommate" method="post">
-        <label for="age_range">Usia</label>
-        <select name="age_range" id="age_range">
-          <option value="18-24">18 - 24 Tahun</option>
-          <option value="25-30">25 - 30 Tahun</option>
-          <option value="31-40">31 - 40 Tahun</option>
-        </select>
-        <label for="gender">Gender</label>
-        <select name="gender" id="gender">
-          <option value="male">Cowo</option>
-          <option value="female">Cewe</option>
-        </select>
-        <label for="bio">Deskripsi</label>
-        <textarea
-          name="bio"
-          id="bio"
-          cols="30"
-          rows="10"
-          placeholder="deskripsikan vibes yang kamu cari"
-        ></textarea>
-        <label for="lodging_id">Kos</label>
-        <div id="map"></div>
-        <button @click.prevent.stop="">Cari</button>
-      </form>
+
+    <!-- Content -->
+    <main class="content">
+      <Card>
+        <template #content>
+          <form class="form" @submit.prevent="search">
+            <!-- Age -->
+            <div class="field">
+              <label>Usia</label>
+              <Select
+                v-model="age_range"
+                :options="ageRanges"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Pilih usia"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Gender -->
+            <div class="field">
+              <label>Gender</label>
+              <Select
+                v-model="gender"
+                :options="genders"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Pilih gender"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Bio -->
+            <div class="field">
+              <label>Deskripsi</label>
+              <Textarea
+                v-model="bio"
+                rows="4"
+                placeholder="Deskripsikan vibes yang kamu cari"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Map -->
+            <div class="field">
+              <label>Kos</label>
+              <div id="map"></div>
+            </div>
+
+            <Button
+              label="Cari"
+              icon="pi pi-search"
+              class="w-full mt-2"
+              type="submit"
+            />
+          </form>
+        </template>
+      </Card>
     </main>
-    <nav>
-      <RouterLink to="/find-roommate">
-        <span class="link-icon">🔎</span>
-        <span>cari teman</span>
-      </RouterLink>
-      <RouterLink to="/chats">
-        <span class="link-icon">🗨️</span>
-        <span>chat</span>
-      </RouterLink>
-      <RouterLink to="/profile">
-        <span class="link-icon">👤</span>
-        <span>profil</span>
-      </RouterLink>
-      <RouterLink to="/logout">
-        <span class="link-icon">❌</span>
-        <span>logout</span>
-      </RouterLink>
-    </nav>
+
+    <!-- Bottom Navigation -->
+    <NavigationBar />
+
+    <ErrorDialog ref="errorDialog" :message="errorMessage" />
   </div>
 </template>
 
 <style scoped>
-#container {
-  height: 100vh;
-  display: none;
-  /* change to display: flex; if authenticated */
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
-header {
+.find-page {
+  min-height: 100vh;
+  background: var(--surface-ground);
   display: flex;
   flex-direction: column;
+}
+
+/* Header */
+.page-header {
+  padding: 1rem;
+  text-align: center;
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+/* Content */
+.content {
+  flex: 1;
+  padding: 1rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+label {
+  font-size: 0.85rem;
+  color: var(--text-color-secondary);
+}
+
+/* Map placeholder */
+#map {
+  height: 140px;
+  border-radius: 0.75rem;
+  background: var(--surface-200);
+  display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: center;
-}
-
-h1 {
-  font-weight: bold;
-  font-size: 18px;
-}
-
-main {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  align-items: center;
-  padding-top: 1em;
-  padding-bottom: 6em;
-  gap: 2em;
-}
-
-main form {
-  display: flex;
-  flex-direction: column;
-}
-
-main form #map {
-  background-color: white;
-  color: black;
-  height: 15em;
-}
-
-main form button {
-  width: 80%;
-  align-self: center;
-  margin-top: 1em;
-}
-
-nav {
-  align-self: center;
-  position: fixed;
-  bottom: 0;
-  padding-bottom: 2em;
-
-  display: flex;
-  gap: 0.3em;
-}
-
-nav a {
-  background-color: rgb(36, 36, 36);
-  width: 6em;
-  height: 6em;
-  border-radius: 10px;
-  color: gray;
-  font-size: 12px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-nav a .link-icon {
-  font-size: 24px;
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
 }
 </style>

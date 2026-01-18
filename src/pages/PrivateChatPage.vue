@@ -10,12 +10,15 @@ const router = useRouter();
 let self = ref();
 let chats = ref();
 
-let messageToBeSent = ref();
+let messageToBeSent = ref(null);
 
 let partner = ref();
 
-function getPartner() {
-  axios
+let errorDialog = ref();
+let errorMessage = ref();
+
+async function getPartner() {
+  await axios
     .get("http://api.find-roommate.test/api/chat-rooms", {
       withCredentials: true,
       withXSRFToken: true,
@@ -32,12 +35,19 @@ function getPartner() {
       });
     })
     .catch((error) => {
-      alert("Can't get the other user's data. Please try again later");
+      errorMessage.value(
+        "Can't get the other user's data. Please try again later"
+      );
+      errorDialog.value.visible = true;
       console.log(error);
     });
 }
 
 function sendChat() {
+  if (!messageToBeSent.value) {
+    return;
+  }
+
   let formData = new FormData();
   formData.append("message", messageToBeSent.value);
   messageToBeSent.value = "";
@@ -55,14 +65,13 @@ function sendChat() {
     )
     .then((response) => {})
     .catch((error) => {
-      alert("Failed to send message! Please try again later");
       console.log(error);
       messageToBeSent.value = formData.get("message");
     });
 }
 
-function getSelf() {
-  axios
+async function getSelf() {
+  await axios
     .get("http://api.find-roommate.test/api/me", {
       withCredentials: true,
       withXSRFToken: true,
@@ -87,7 +96,10 @@ function getChats() {
       chats.value = response.data.chats;
     })
     .catch((error) => {
-      alert("Sorry, we can't get your chats, please try again later");
+      errorMessage.value(
+        "Sorry, we can't get your chats, please try again later"
+      );
+      errorDialog.value.visible = true;
       console.log(error);
     });
 }
@@ -106,7 +118,8 @@ function ensureAuthenticated() {
         if (error.response.status == 401) {
           router.push("/login");
         } else {
-          alert("Server tidak dapat dihubungi, coba lagi nanti");
+          errorMessage.value("Server tidak dapat dihubungi, coba lagi nanti");
+          errorDialog.value.visible = true;
           router.push("/");
         }
       }
@@ -122,163 +135,98 @@ function listenForChats(chatRoomId) {
   });
 }
 
-onMounted(() => {
+onMounted(async () => {
   ensureAuthenticated();
-  getSelf();
-  getPartner();
+  await getSelf();
+  await getPartner();
   getChats();
   listenForChats(route.params.id);
 });
 </script>
 
 <template>
-  <div id="container">
-    <header>
-      <h1 v-if="chats && partner">
-        {{ partner ? partner.full_name : "Error, can't get name" }}
-      </h1>
-    </header>
-    <main>
-      <ul class="chats-list" v-if="chats && self">
-        <li
+  <Card class="chat-card">
+    <!-- Header -->
+    <template #title>
+      <div class="chat-header">
+        <i class="pi pi-user"></i>
+        <span>
+          {{ partner ? partner.full_name : "Unknown User" }}
+        </span>
+      </div>
+    </template>
+
+    <!-- Chat messages -->
+    <template #content>
+      <ScrollPanel class="chat-messages" ref="chatScrollPanel">
+        <div
           v-for="chat in chats"
           :key="chat.id"
-          class="chat-item"
-          :class="{ selfschat: chat.sender.id == self.id }"
+          class="chat-bubble"
+          :class="{ self: chat.sender.id === self.id }"
         >
           {{ chat.message }}
-        </li>
-      </ul>
-      <form
-        :action="'/chat-rooms/' + route.params.id + '/chats'"
-        method="post"
-        id="send-chat-form"
-      >
-        <input
-          type="text"
-          name="message"
-          id="message"
-          placeholder="Type your message here"
+        </div>
+      </ScrollPanel>
+    </template>
+
+    <!-- Input area -->
+    <template #footer>
+      <form class="chat-input" @submit.prevent="sendChat">
+        <InputText
           v-model="messageToBeSent"
+          placeholder="Type your message..."
+          class="flex-1"
         />
-        <button type="submit" @click.prevent.stop="sendChat">Send</button>
+        <Button label="Send" icon="pi pi-send" type="submit" />
       </form>
-    </main>
-    <nav>
-      <RouterLink to="/find-roommate">
-        <span class="link-icon">🔎</span>
-        <span>cari teman</span>
-      </RouterLink>
-      <RouterLink to="/chats">
-        <span class="link-icon">🗨️</span>
-        <span>chat</span>
-      </RouterLink>
-      <RouterLink to="/profile">
-        <span class="link-icon">👤</span>
-        <span>profil</span>
-      </RouterLink>
-      <RouterLink to="/logout">
-        <span class="link-icon">❌</span>
-        <span>logout</span>
-      </RouterLink>
-    </nav>
-  </div>
+      <NavigationBar />
+    </template>
+  </Card>
+
+  <ErrorDialog ref="errorDialog" :message="errorMessage" />
 </template>
 
 <style scoped>
-#container {
-  height: 100vh;
-  display: none;
-  /* change to display: flex; if authenticated */
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
-header {
-  position: fixed;
-  background-color: rgb(56, 56, 56);
-  width: 100%;
-  padding: 1em;
-
+.chat-card {
+  max-width: 720px;
+  height: 80vh;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
 }
 
-h1 {
-  font-weight: bold;
-  font-size: 18px;
-}
-
-main {
-  margin-top: 3.5em;
-
+/* Header */
+.chat-header {
   display: flex;
-  flex-direction: column;
-  justify-content: space-around;
   align-items: center;
-  padding-top: 1em;
-  padding-bottom: 6em;
-  gap: 2em;
+  gap: 0.5rem;
 }
 
-main .chats-list {
+/* Messages */
+.chat-messages {
+  height: 75vh;
+  padding: 1rem;
+}
+
+.chat-bubble {
+  max-width: 70%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  margin-bottom: 0.5rem;
+  background: var(--p-surface-700);
+  align-self: flex-start;
+}
+
+.chat-bubble.self {
+  background: var(--p-primary-color);
+  color: white;
+  margin-left: auto;
+}
+
+/* Input */
+.chat-input {
   display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-  list-style-type: none;
-  width: 100%;
-
-  margin-bottom: 6em;
-}
-
-.chat-item {
-  background-color: rgb(56, 56, 56);
-  padding: 0.5em;
-  width: fit-content;
-}
-
-.selfschat {
-  align-self: flex-end;
-}
-
-main #send-chat-form {
-  position: fixed;
-  bottom: 8em;
-}
-
-main #send-chat-form input,
-main #send-chat-form button {
-  font-size: 16px;
-  padding: 0.5em;
-}
-
-nav {
-  align-self: center;
-  position: fixed;
-  bottom: 0;
-  padding-bottom: 2em;
-
-  display: flex;
-  gap: 0.3em;
-}
-
-nav a {
-  background-color: rgb(36, 36, 36);
-  width: 6em;
-  height: 6em;
-  border-radius: 10px;
-  color: gray;
-  font-size: 12px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-nav a .link-icon {
-  font-size: 24px;
+  gap: 0.5rem;
 }
 </style>

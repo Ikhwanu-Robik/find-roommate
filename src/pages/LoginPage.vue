@@ -8,6 +8,9 @@ const router = useRouter();
 let phone = ref("");
 let password = ref("");
 
+let errorDialog = ref();
+let errorMessage = ref();
+
 function login() {
   let formData = new FormData();
   formData.append("phone", phone.value);
@@ -25,41 +28,27 @@ function login() {
           withXSRFToken: true,
         })
         .then((response) => {
-          alert("log in successful");
           router.push("/find-roommate");
         })
         .catch((e) => {
           console.log(e);
 
           if (e.response.status == 422) {
-            let errors = e.response.data.errors;
-
-            displayValidationError(errors);
+            errors.value = e.response.data.errors;
+            validationErrorDialog.value.visible = true;
           } else if (e.response.status == 401) {
-            alert("Your phone or password is wrong");
+            errorMessage.value("Your phone or password is wrong");
+            errorDialog.value.visible = true;
           } else {
-            alert("Something is wrong, please try again later");
+            errorMessage.value("Something is wrong, please try again later");
+            errorDialog.value.visible = true;
           }
         });
     });
 }
 
-function displayValidationError(errors) {
-  let allStringified = "";
-  for (let error in errors) {
-    let messages = errors[error];
-
-    let stringified = error + ": ";
-
-    messages.forEach((message) => {
-      stringified += message + ", ";
-    });
-
-    allStringified += stringified + "\n";
-  }
-
-  alert("Form Inputs Invalid\n" + allStringified);
-}
+const validationErrorDialog = ref();
+const errors = ref(null);
 
 function redirectIfLoggedIn() {
   axios
@@ -76,72 +65,112 @@ onMounted(redirectIfLoggedIn);
 </script>
 
 <template>
-  <div id="container">
-    <header>
-      <h4>Login</h4>
-      <h1>BagiSewa</h1>
-    </header>
-    <main>
-      <form action="/login" method="post">
-        <label for="phone">Phone</label>
-        <input
-          type="tel"
-          name="phone"
-          id="phone"
-          placeholder="0812-9087-1029"
-          v-model="phone"
-        />
-        <label for="password">Password</label>
-        <input
-          type="password"
-          name="password"
-          id="password"
-          placeholder="password"
-          v-model="password"
-        />
-        <button type="submit" @click.prevent.stop="login">Login</button>
-      </form>
-      <RouterLink to="/signup">atau signup</RouterLink>
-    </main>
+  <div class="login-page">
+    <Card class="login-card">
+      <template #title>
+        <div class="header">
+          <h4 class="subtitle">Login</h4>
+          <h1 class="brand">BagiSewa</h1>
+        </div>
+      </template>
+
+      <template #content>
+        <form class="form" @submit.prevent="login">
+          <div class="field">
+            <label for="phone">Phone</label>
+            <InputText
+              id="phone"
+              type="tel"
+              placeholder="0812-9087-1029"
+              v-model="phone"
+              class="w-full"
+            />
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <Password
+              id="password"
+              v-model="password"
+              toggleMask
+              :feedback="false"
+              placeholder="password"
+              class="w-full"
+            />
+          </div>
+
+          <Button label="Login" type="submit" class="w-full mt-3" />
+        </form>
+
+        <div class="footer">
+          <RouterLink to="/signup" class="signup-link">
+            atau signup
+          </RouterLink>
+        </div>
+      </template>
+    </Card>
   </div>
+
+  <ValidationErrorDialog ref="validationErrorDialog" :errors="errors" />
+
+  <ErrorDialog ref="errorDialog" :message="errorMessage" />
 </template>
 
 <style scoped>
-#container {
-  height: 100vh;
+.login-page {
+  min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-header {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: var(--surface-ground);
 }
 
-h1 {
-  font-weight: bold;
+.login-card {
+  width: 100%;
+  max-width: 360px;
 }
 
-main {
+.header {
+  text-align: center;
+}
+
+.subtitle {
+  margin: 0;
+  font-weight: 500;
+  color: var(--text-color-secondary);
+}
+
+.brand {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.form {
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-  align-items: center;
-  padding: 3em;
-  gap: 2em;
+  gap: 1rem;
 }
 
-form {
+.field {
   display: flex;
-  gap: 0.3em;
   flex-direction: column;
+  gap: 0.25rem;
 }
 
-form > button {
-  width: 80%;
-  align-self: center;
+label {
+  font-size: 0.875rem;
+  color: var(--text-color-secondary);
+}
+
+.footer {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.signup-link {
+  font-size: 0.875rem;
+  color: var(--primary-color);
+  text-decoration: none;
 }
 </style>

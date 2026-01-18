@@ -17,18 +17,22 @@ let birthdate = ref("");
 let address = ref("");
 let bio = ref("");
 
+const genders = [
+  { label: "Cowo", value: "male" },
+  { label: "Cewe", value: "female" },
+];
 
-function handleFileSelection(e) {
-  profile_photo.value = e.target.files[0];
-
-  let reader = new FileReader();
-
-  reader.onload = function (e) {
-    profile_photo_path.value = e.target.result;
-  };
-
-  reader.readAsDataURL(profile_photo.value);
+function handleFileSelection(event) {
+  const file = event.files[0];
+  profile_photo.value = file;
+  profile_photo_path.value = URL.createObjectURL(file);
 }
+
+let validationErrorDialog = ref();
+let errors = ref();
+
+let errorDialog = ref();
+let errorMessage = ref();
 
 function signup() {
   let formData = new FormData();
@@ -37,7 +41,9 @@ function signup() {
   formData.append("phone", phone.value);
   formData.append("password", password.value);
   formData.append("gender", gender.value);
-  formData.append("birthdate", birthdate.value);
+  if (birthdate.value != "") {
+    formData.append("birthdate", formatDate(birthdate.value));
+  }
   formData.append("address", address.value);
   formData.append("bio", bio.value);
 
@@ -53,36 +59,31 @@ function signup() {
           withXSRFToken: true,
         })
         .then((response) => {
-          alert("sign up successful");
+          errorMessage.value(
+            "Sorry, there' no error. Your signup was successful. I just don't wanna modify the text."
+          );
+          errorDialog.value.visible = true;
           router.push("/login");
         })
         .catch((e) => {
           console.log(e);
           if (e.response.status == 422) {
-            let errors = e.response.data.errors;
-            displayValidationError(errors);
+            errors.value = e.response.data.errors;
+            validationErrorDialog.value.visible = true;
           } else {
-            alert("Something is wrong, please try again later");
+            errorMessage.value("Something is wrong, please try again later");
+            errorDialog.value.visible = true;
           }
         });
     });
 }
 
-function displayValidationError(errors) {
-  let allStringified = "";
-  for (let error in errors) {
-    let messages = errors[error];
+function formatDate(date) {
+  let yyyy = date.getFullYear();
+  let mm = String(date.getMonth()).padStart(2, "0");
+  let dd = String(date.getDay()).padStart(2, "0");
 
-    let stringified = error + ": ";
-
-    messages.forEach((message) => {
-      stringified += message + ", ";
-    });
-
-    allStringified += stringified + "\n";
-  }
-
-  alert("Form Inputs Invalid\n" + allStringified);
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function redirectIfLoggedIn() {
@@ -100,121 +101,176 @@ onMounted(redirectIfLoggedIn);
 </script>
 
 <template>
-  <div id="container">
-    <header>
-      <h4>Signup</h4>
-      <h1>BagiSewa</h1>
-    </header>
-    <main>
-      <form action="/login" method="post">
-        <label for="full_name">Full Name</label>
-        <input
-          type="text"
-          name="full_name"
-          id="full_name"
-          placeholder="Ahmad Kasim"
-          v-model="full_name"
-        />
-        <label for="profile_photo">Foto Profil</label>
-        <input
-          type="file"
-          name="profile_photo"
-          id="profile_photo"
-          v-on:change="handleFileSelection"
-        />
-        <img
-          v-if="profile_photo_path"
-          :src="profile_photo_path"
-          alt="preview of profile photo"
-          width="50%"
-        />
-        <label for="phone">Phone</label>
-        <input
-          type="tel"
-          name="phone"
-          id="phone"
-          placeholder="0812-9087-1029"
-          v-model="phone"
-        />
-        <label for="password">Password</label>
-        <input
-          type="password"
-          name="password"
-          id="password"
-          placeholder="password"
-          v-model="password"
-        />
-        <label for="gender">Gender</label>
-        <select name="gender" id="gender" v-model="gender">
-          <option value="male">Cowo</option>
-          <option value="female">Cewe</option>
-        </select>
-        <label for="birthdate">Ulang Tahun</label>
-        <input
-          type="date"
-          name="birthdate"
-          id="birthdate"
-          v-model="birthdate"
-        />
-        <label for="address">Alamat</label>
-        <input
-          type="text"
-          name="address"
-          id="address"
-          placeholder="Jakarta"
-          v-model="address"
-        />
-        <label for="bio">Bio</label>
-        <textarea
-          name="bio"
-          id="bio"
-          cols="30"
-          rows="5"
-          placeholder="tell me about yourself"
-          v-model="bio"
-        ></textarea>
-        <button type="submit" @click.prevent.stop="signup">Signup</button>
-      </form>
-    </main>
+  <div class="signup-page">
+    <Card class="signup-card">
+      <template #title>
+        <div class="header">
+          <h4 class="subtitle">Signup</h4>
+          <h1 class="brand">BagiSewa</h1>
+        </div>
+      </template>
+
+      <template #content>
+        <form class="form" @submit.prevent="signup">
+          <div class="field">
+            <label for="full_name">Full Name</label>
+            <InputText
+              id="full_name"
+              placeholder="Ahmad Kasim"
+              v-model="full_name"
+              class="w-full"
+            />
+          </div>
+
+          <div class="field">
+            <label>Foto Profil</label>
+            <FileUpload
+              mode="basic"
+              accept="image/*"
+              chooseLabel="Pilih Foto"
+              customUpload
+              @select="handleFileSelection"
+              class="w-full"
+            />
+
+            <img
+              v-if="profile_photo_path"
+              :src="profile_photo_path"
+              alt="Preview Foto Profil"
+              class="photo-preview"
+            />
+          </div>
+
+          <div class="field">
+            <label for="phone">Phone</label>
+            <InputText
+              id="phone"
+              type="tel"
+              placeholder="0812-9087-1029"
+              v-model="phone"
+              class="w-full"
+            />
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <Password
+              id="password"
+              v-model="password"
+              toggleMask
+              :feedback="false"
+              placeholder="Password"
+              class="w-full"
+            />
+          </div>
+
+          <div class="field">
+            <label for="gender">Gender</label>
+            <Select
+              id="gender"
+              v-model="gender"
+              :options="genders"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Pilih gender"
+              class="w-full"
+            />
+          </div>
+
+          <div class="field">
+            <label for="birthdate">Ulang Tahun</label>
+            <DatePicker
+              id="birthdate"
+              v-model="birthdate"
+              dateFormat="yy-mm-dd"
+              showIcon
+              class="w-full"
+            />
+          </div>
+
+          <div class="field">
+            <label for="address">Alamat</label>
+            <InputText
+              id="address"
+              placeholder="Jakarta"
+              v-model="address"
+              class="w-full"
+            />
+          </div>
+
+          <div class="field">
+            <label for="bio">Bio</label>
+            <Textarea
+              id="bio"
+              v-model="bio"
+              rows="4"
+              placeholder="Tell me about yourself"
+              class="w-full"
+            />
+          </div>
+
+          <Button label="Signup" type="submit" class="w-full mt-3" />
+        </form>
+      </template>
+    </Card>
   </div>
+
+  <ValidationErrorDialog ref="validationErrorDialog" :errors="errors" />
+
+  <ErrorDialog ref="errorDialog" :message="errorMessage" />
 </template>
 
 <style scoped>
-#container {
-  height: 100vh;
+.signup-page {
+  min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-header {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: var(--surface-ground);
 }
 
-h1 {
-  font-weight: bold;
+.signup-card {
+  width: 100%;
+  max-width: 420px;
 }
 
-main {
+.header {
+  text-align: center;
+}
+
+.subtitle {
+  margin: 0;
+  font-weight: 500;
+  color: var(--text-color-secondary);
+}
+
+.brand {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.form {
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-  align-items: center;
-  padding: 3em;
-  gap: 2em;
+  gap: 1rem;
 }
 
-form {
+.field {
   display: flex;
-  gap: 0.3em;
   flex-direction: column;
+  gap: 0.25rem;
 }
 
-form > button {
-  width: 80%;
-  align-self: center;
+label {
+  font-size: 0.875rem;
+  color: var(--text-color-secondary);
+}
+
+.photo-preview {
+  margin-top: 0.5rem;
+  width: 100%;
+  max-width: 200px;
+  border-radius: 0.75rem;
 }
 </style>

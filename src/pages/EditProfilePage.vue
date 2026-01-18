@@ -5,30 +5,40 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 
-let isHavingUnsavedChange = ref(false);
+const isHavingUnsavedChange = ref(false);
 
-let profile_photo = ref(null);
-let profile_photo_path = ref(null);
+const profile_photo = ref(null);
+const profile_photo_path = ref(null);
 
-function handleFileSelection(e) {
+const genders = [
+  { label: "Male", value: "male" },
+  { label: "Female", value: "female" },
+];
+
+const markUnsaved = () => {
   isHavingUnsavedChange.value = true;
+};
 
-  profile_photo.value = e.target.files[0];
+const handleFileSelection = (event) => {
+  const file = event.files[0];
+  profile_photo.value = file;
+  profile_photo_path.value = URL.createObjectURL(file);
+  markUnsaved();
+};
 
-  let reader = new FileReader();
+let errors = ref();
+let validationErrorDialog = ref();
 
-  reader.onload = function (e) {
-    profile_photo_path.value = e.target.result;
-  };
-
-  reader.readAsDataURL(profile_photo.value);
-}
+let errorDialog = ref();
+let errorMessage = ref();
 
 function updateProfile() {
   let formData = new FormData();
   formData.append("full_name", profile.value.full_name);
   formData.append("gender", profile.value.gender);
-  formData.append("birthdate", profile.value.birthdate);
+  if (profile.value.birthdate instanceof Date) {
+    formData.append("birthdate", formatDate(profile.value.birthdate));
+  }
   formData.append("address", profile.value.address);
   formData.append("bio", profile.value.bio);
   if (profile_photo.value != null) {
@@ -51,14 +61,24 @@ function updateProfile() {
       isHavingUnsavedChange.value = false;
     })
     .catch((error) => {
-      alert("Can't save changes, please try again later");
+      errorMessage.value("Can't save changes, please try again later");
+      errorDialog.value.visible = true;
       if (error.response) {
         if (error.response.status == 422) {
-          displayValidationError(error.response.data.errors);
+          errors.value = error.response.data.errors;
+          validationErrorDialog.value.visible = true;
         }
       }
       console.log(error);
     });
+}
+
+function formatDate(date) {
+  let yyyy = date.getFullYear();
+  let mm = String(date.getMonth()).padStart(2, "0");
+  let dd = String(date.getDay()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 let profile = ref(null);
@@ -77,7 +97,8 @@ function ensureAuthenticated() {
         if (error.response.status == 401) {
           router.push("/login");
         } else {
-          alert("Server tidak dapat dihubungi, coba lagi nanti");
+          errorMessage.value("Server tidak dapat dihubungi, coba lagi nanti");
+          errorDialog.value.visible = true;
           router.push("/");
         }
       }
@@ -98,23 +119,6 @@ function getSelfAndDisplay() {
     });
 }
 
-function displayValidationError(errors) {
-  let allStringified = "";
-  for (let error in errors) {
-    let messages = errors[error];
-
-    let stringified = error + ": ";
-
-    messages.forEach((message) => {
-      stringified += message + ", ";
-    });
-
-    allStringified += stringified + "\n";
-  }
-
-  alert("Form Inputs Invalid\n" + allStringified);
-}
-
 onMounted(() => {
   ensureAuthenticated();
   getSelfAndDisplay();
@@ -122,193 +126,182 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="container">
-    <header>
+  <div class="profile-page">
+    <!-- Header -->
+    <header class="page-header">
       <h1>Profil</h1>
-      <h4 class="warning" v-if="isHavingUnsavedChange">change not saved</h4>
+      <Tag
+        v-if="isHavingUnsavedChange"
+        severity="warn"
+        value="Perubahan belum disimpan"
+      />
     </header>
-    <main>
-      <section v-if="profile" id="profile">
-        <img
-          :src="profile_photo_path"
-          alt="profile_photo"
-          width="70%"
-          id="profile_photo"
-        />
-        <label for="change_profile_photo">change profile photo</label>
-        <input
-          type="file"
-          id="change_profile_photo"
-          @change="handleFileSelection"
-        />
-        <table id="user-data">
-          <tbody>
-            <tr>
-              <td><label for="full_name">Full name</label></td>
-              <td>
-                <input
-                  id="full_name"
-                  type="text"
-                  v-model="profile.full_name"
-                  @change="isHavingUnsavedChange = true"
-                />
-              </td>
-            </tr>
-            <tr>
-              <td><label for="gender">Gender</label></td>
-              <td>
-                <select
-                  name="gender"
-                  id="gender"
-                  v-model="profile.gender"
-                  @change="isHavingUnsavedChange = true"
-                >
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td><label for="birthdate">Birthdate</label></td>
-              <td>
-                <input
-                  type="date"
-                  name="birthdate"
-                  id="birthdate"
-                  v-model="profile.birthdate"
-                  @change="isHavingUnsavedChange = true"
-                />
-              </td>
-            </tr>
-            <tr>
-              <td><label for="address">Address</label></td>
-              <td>
-                <input
-                  type="text"
-                  name="address"
-                  id="address"
-                  v-model="profile.address"
-                  @change="isHavingUnsavedChange = true"
-                />
-              </td>
-            </tr>
-            <tr>
-              <td><label for="bio">Bio</label></td>
-              <td>
-                <textarea
-                  name="bio"
-                  id="bio"
-                  v-model="profile.bio"
-                  @change="isHavingUnsavedChange = true"
-                ></textarea>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-      <section id="profile-edit-actions">
-        <button @click="updateProfile">Save</button>
-      </section>
+
+    <!-- Content -->
+    <main class="content">
+      <Card>
+        <template #content v-if="profile">
+          <!-- Profile Photo -->
+          <div class="photo-section">
+            <img
+              :src="profile_photo_path"
+              alt="Profile Photo"
+              class="profile-photo"
+            />
+
+            <FileUpload
+              mode="basic"
+              accept="image/*"
+              chooseLabel="Ganti Foto Profil"
+              customUpload
+              @select="handleFileSelection"
+            />
+          </div>
+
+          <!-- Form -->
+          <div class="form">
+            <div class="field">
+              <label>Full Name</label>
+              <InputText
+                v-model="profile.full_name"
+                class="w-full"
+                @input="markUnsaved"
+              />
+            </div>
+
+            <div class="field">
+              <label>Gender</label>
+              <Select
+                v-model="profile.gender"
+                :options="genders"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Pilih gender"
+                class="w-full"
+                @change="markUnsaved"
+              />
+            </div>
+
+            <div class="field">
+              <label>Birthdate</label>
+              <DatePicker
+                v-model="profile.birthdate"
+                dateFormat="yy-mm-dd"
+                showIcon
+                class="w-full"
+                @update:modelValue="markUnsaved"
+              />
+            </div>
+
+            <div class="field">
+              <label>Address</label>
+              <InputText
+                v-model="profile.address"
+                class="w-full"
+                @input="markUnsaved"
+              />
+            </div>
+
+            <div class="field">
+              <label>Bio</label>
+              <Textarea
+                v-model="profile.bio"
+                rows="4"
+                class="w-full"
+                @input="markUnsaved"
+              />
+            </div>
+          </div>
+        </template>
+      </Card>
     </main>
-    <nav>
-      <RouterLink to="/find-roommate">
-        <span class="link-icon">🔎</span>
-        <span>cari teman</span>
-      </RouterLink>
-      <RouterLink to="/chats">
-        <span class="link-icon">🗨️</span>
-        <span>chat</span>
-      </RouterLink>
-      <RouterLink to="/profile">
-        <span class="link-icon">👤</span>
-        <span>profil</span>
-      </RouterLink>
-      <RouterLink to="/logout">
-        <span class="link-icon">❌</span>
-        <span>logout</span>
-      </RouterLink>
-    </nav>
+
+    <!-- Sticky Actions -->
+    <footer class="actions">
+      <Button
+        label="Save"
+        icon="pi pi-save"
+        class="w-full"
+        :disabled="!isHavingUnsavedChange"
+        @click="updateProfile"
+      />
+    </footer>
+
+    <NavigationBar />
+
+    <ValidationErrorDialog ref="validationErrorDialog" :errors="errors" />
+
+    <ErrorDialog ref="errorDialog" :message="errorMessage" />
   </div>
 </template>
 
 <style scoped>
-.warning {
-  background-color: rgb(250, 250, 0);
-  color: black;
-  padding: 0.5em;
-  font-weight: bold;
-}
-
-#container {
-  height: 100vh;
+.profile-page {
+  min-height: 100vh;
+  background: var(--surface-ground);
   display: flex;
   flex-direction: column;
-  justify-content: center;
 }
 
-header {
+/* Header */
+.page-header {
+  padding: 1rem;
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--surface-border);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 0.5rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+/* Content */
+.content {
+  flex: 1;
+  padding: 1rem;
+}
+
+/* Photo */
+.photo-section {
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
-h1 {
-  font-weight: bold;
+.profile-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
-main {
+/* Form */
+.form {
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-  align-items: center;
-  padding: 3em;
-  gap: 2em;
+  gap: 1rem;
 }
 
-main #profile {
+.field {
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
 }
 
-main #profile #profile_photo {
-  align-self: center;
+label {
+  font-size: 0.85rem;
+  color: var(--text-color-secondary);
 }
 
-main #profile #change_profile_photo {
-  width: 60%;
-  align-self: center;
-}
-
-main #profile label {
-  align-self: center;
-}
-
-nav {
-  align-self: center;
-  position: fixed;
-  bottom: 0;
-  padding-bottom: 2em;
-
-  display: flex;
-  gap: 0.3em;
-}
-
-nav a {
-  background-color: rgb(36, 36, 36);
-  width: 6em;
-  height: 6em;
-  border-radius: 10px;
-  color: gray;
-  font-size: 12px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-nav a .link-icon {
-  font-size: 24px;
+/* Actions */
+.actions {
+  padding: 1rem;
+  border-top: 1px solid var(--surface-border);
+  background: var(--surface-card);
 }
 </style>

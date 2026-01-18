@@ -1,5 +1,4 @@
 <script setup>
-import ContactListItem from "@/components/ContactListItem.vue";
 import axios from "axios";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
@@ -8,6 +7,9 @@ const router = useRouter();
 
 let self = ref(null);
 let chat_rooms = ref([]);
+
+let errorDialog = ref();
+let errorMessage = ref();
 
 function getAcquintedProfiles() {
   axios
@@ -19,8 +21,9 @@ function getAcquintedProfiles() {
       chat_rooms.value = response.data.chat_rooms;
     })
     .catch((error) => {
-      alert("Can't get your chat history. Please try again later");
       console.log(error);
+      errorMessage.value("Can't get your chat history. Please try again later");
+      errorDialog.value.visible = true;
     });
 }
 
@@ -49,7 +52,8 @@ function ensureAuthenticated() {
         if (error.response.status == 401) {
           router.push("/login");
         } else {
-          alert("Server tidak dapat dihubungi, coba lagi nanti");
+          errorMessage.value("Can't contact server. Please try again later.");
+          errorDialog.value.visible = true;
           router.push("/");
         }
       }
@@ -65,99 +69,90 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="container">
-    <header>
+  <div class="chat-history-page">
+    <header class="page-header">
       <h1>Riwayat Chat</h1>
     </header>
-    <main>
-      <ul class="chats-list" v-if="self && chat_rooms">
-        <li v-for="chat_room in chat_rooms" :key="chat_room.id">
-          <ContactListItem :chat_room="chat_room" :self="self"/>
-        </li>
-      </ul>
+    <main class="content">
+      <Card>
+        <template #content>
+          <ScrollPanel class="contacts">
+            <ul class="chats-list" v-if="self && chat_rooms">
+              <li v-for="chat_room in chat_rooms" :key="chat_room.id">
+                <RouterLink :to="'/chats/' + chat_room.id">
+                  <Button class="contact-button">
+                    <img
+                      :src="
+                        'http://api.find-roommate.test/storage/' +
+                        (chat_room.customer_profiles[0].id != self.id
+                          ? chat_room.customer_profiles[0].profile_photo
+                          : chat_room.customer_profiles[1].profile_photo)
+                      "
+                      alt="profile_photo"
+                      class="profile-photos"
+                    />
+                    <h4>
+                      {{
+                        chat_room.customer_profiles[0].id != self.id
+                          ? chat_room.customer_profiles[0].full_name
+                          : chat_room.customer_profiles[1].full_name
+                      }}
+                    </h4>
+                  </Button>
+                </RouterLink>
+              </li>
+            </ul>
+          </ScrollPanel>
+        </template>
+      </Card>
     </main>
-    <nav>
-      <RouterLink to="/find-roommate">
-        <span class="link-icon">🔎</span>
-        <span>cari teman</span>
-      </RouterLink>
-      <RouterLink to="/chats">
-        <span class="link-icon">🗨️</span>
-        <span>chat</span>
-      </RouterLink>
-      <RouterLink to="/profile">
-        <span class="link-icon">👤</span>
-        <span>profil</span>
-      </RouterLink>
-      <RouterLink to="/logout">
-        <span class="link-icon">❌</span>
-        <span>logout</span>
-      </RouterLink>
-    </nav>
+    <NavigationBar />
+    <ErorrDialog ref="errorDialog" :message="errorMessage" />
   </div>
 </template>
 
 <style scoped>
-#container {
-  height: 100vh;
-  display: none;
-  /* change to display: flex; if authenticated */
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
-header {
+.chat-history-page {
+  min-height: 100vh;
+  background: var(--surface-ground);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
 }
 
-h1 {
-  font-weight: bold;
-  font-size: 18px;
+/* Header */
+.page-header {
+  padding: 1rem;
+  text-align: center;
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--surface-border);
 }
 
-main {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  align-items: center;
-  padding-top: 1em;
-  padding-bottom: 6em;
-  gap: 2em;
+.page-header h1 {
+  margin: 0;
+  font-size: 1.2rem;
 }
 
-main .chats-list {
-    list-style-type: none;
-    width: 100vw;
+/* Content */
+.content {
+  flex: 1;
+  padding: 1rem;
+  height: 70vh;
 }
 
-nav {
-  align-self: center;
-  position: fixed;
-  bottom: 0;
-  padding-bottom: 2em;
-
-  display: flex;
-  gap: 0.3em;
+.chats-list {
+  list-style-type: none;
 }
 
-nav a {
-  background-color: rgb(36, 36, 36);
-  width: 6em;
-  height: 6em;
-  border-radius: 10px;
-  color: gray;
-  font-size: 12px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+.contacts {
+  height: 70vh;
 }
 
-nav a .link-icon {
-  font-size: 24px;
+.contact-button {
+  width: 100%;
+}
+
+.profile-photos {
+  height: 3em;
+  border-radius: 50%;
 }
 </style>
