@@ -1,6 +1,6 @@
 <script setup>
 import axios from "axios";
-import { onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import echo from "../echo.js";
 
@@ -8,7 +8,7 @@ const route = useRoute();
 const router = useRouter();
 
 let self = ref();
-let chats = ref();
+let chats = ref([]);
 
 let messageToBeSent = ref(null);
 
@@ -93,7 +93,9 @@ function getChats() {
       }
     )
     .then((response) => {
-      chats.value = response.data.chats;
+      response.data.chats.forEach((chat) => {
+        chats.value.push(chat);
+      });
     })
     .catch((error) => {
       errorMessage.value(
@@ -134,6 +136,24 @@ function listenForChats(chatRoomId) {
     chats.value.push(e);
   });
 }
+
+let chatScrollPanel = ref();
+
+async function scrollToBottom() {
+  await nextTick();
+
+  const content = chatScrollPanel.value?.$el?.querySelector(
+    ".p-scrollpanel-content"
+  );
+
+  if (content) {
+    content.scrollTop = content.scrollHeight;
+  }
+}
+
+watch(() => chats.value.length, () => {
+  scrollToBottom();
+});
 
 onMounted(async () => {
   ensureAuthenticated();
