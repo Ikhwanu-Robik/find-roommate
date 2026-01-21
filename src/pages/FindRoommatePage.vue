@@ -4,6 +4,7 @@ import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+const isProcessing = ref(false);
 
 const ageRanges = [
   { label: "18 - 24 Tahun", value: "18-24" },
@@ -18,15 +19,13 @@ const genders = [
 let errorDialog = ref();
 let errorMessage = ref();
 
-function ensureAuthenticated() {
-  axios
+async function ensureAuthenticated() {
+  await axios
     .get("http://api.find-roommate.test/api/me", {
       withCredentials: true,
       withXSRFToken: true,
     })
-    .then((response) => {
-      document.getElementById("container").style.display = "flex";
-    })
+    .then((response) => {})
     .catch((error) => {
       if (error.response) {
         if (error.response.status == 401) {
@@ -74,9 +73,11 @@ function setMapAtCoords(lat = -7.8846, lon = 111.046) {
   }).addTo(map);
 }
 
-onMounted(() => {
-  ensureAuthenticated();
-  setMap();
+onMounted(async () => {
+  isProcessing.value = true;
+  await ensureAuthenticated();
+  await setMap();
+  isProcessing.value = false;
 });
 </script>
 
@@ -150,6 +151,7 @@ onMounted(() => {
     <NavigationBar />
 
     <ErrorDialog ref="errorDialog" :message="errorMessage" />
+    <LoadingDialog :visible="isProcessing" />
   </div>
 </template>
 

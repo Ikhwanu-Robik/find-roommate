@@ -4,6 +4,7 @@ import axios from "axios";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+const isProcessing = ref(false);
 
 let full_name = ref("");
 
@@ -34,7 +35,11 @@ let errors = ref();
 let errorDialog = ref();
 let errorMessage = ref();
 
-function signup() {
+async function signup() {
+  isProcessing.value = true;
+
+  console.log(formatDate(birthdate.value));
+
   let formData = new FormData();
   formData.append("name", full_name.value);
   formData.append("profile_photo", profile_photo.value);
@@ -47,57 +52,58 @@ function signup() {
   formData.append("address", address.value);
   formData.append("bio", bio.value);
 
-  axios
-    .get("http://api.find-roommate.test/sanctum/csrf-cookie", {
+  await axios
+    .postForm("http://api.find-roommate.test/api/signup", formData, {
       withCredentials: true,
       withXSRFToken: true,
     })
     .then((response) => {
-      axios
-        .postForm("http://api.find-roommate.test/api/signup", formData, {
-          withCredentials: true,
-          withXSRFToken: true,
-        })
-        .then((response) => {
-          errorMessage.value(
-            "Sorry, there' no error. Your signup was successful. I just don't wanna modify the text."
-          );
-          errorDialog.value.visible = true;
-          router.push("/login");
-        })
-        .catch((e) => {
-          console.log(e);
-          if (e.response.status == 422) {
-            errors.value = e.response.data.errors;
-            validationErrorDialog.value.visible = true;
-          } else {
-            errorMessage.value("Something is wrong, please try again later");
-            errorDialog.value.visible = true;
-          }
-        });
+      errorMessage.value =
+        "Sorry, there' no error. Your signup was successful. I just don't wanna modify the text.";
+      errorDialog.value.visible = true;
+      router.push("/login");
+    })
+    .catch((e) => {
+      console.log(e);
+      if (e.response.status == 422) {
+        errors.value = e.response.data.errors;
+        validationErrorDialog.value.visible = true;
+      } else {
+        errorMessage.value = "Something is wrong, please try again later";
+        errorDialog.value.visible = true;
+      }
     });
+
+  isProcessing.value = false;
 }
 
 function formatDate(date) {
   let yyyy = date.getFullYear();
-  let mm = String(date.getMonth()).padStart(2, "0");
-  let dd = String(date.getDay()).padStart(2, "0");
+  let mm = String(date.getMonth() + 1).padStart(2, "0");
+  let dd = String(date.getDate()).padStart(2, "0");
 
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function redirectIfLoggedIn() {
-  axios
+async function redirectIfLoggedIn() {
+  await axios
     .get("http://api.find-roommate.test/api/me", {
       withCredentials: true,
       withXSRFToken: true,
     })
     .then((response) => {
       router.push("/find-roommate");
+    })
+    .catch((error) => {
+      console.log(error);
     });
 }
 
-onMounted(redirectIfLoggedIn);
+onMounted(async () => {
+  isProcessing.value = true;
+  await redirectIfLoggedIn();
+  isProcessing.value = false;
+});
 </script>
 
 <template>
@@ -218,6 +224,7 @@ onMounted(redirectIfLoggedIn);
   <ValidationErrorDialog ref="validationErrorDialog" :errors="errors" />
 
   <ErrorDialog ref="errorDialog" :message="errorMessage" />
+  <LoadingDialog :visible="isProcessing" />
 </template>
 
 <style scoped>

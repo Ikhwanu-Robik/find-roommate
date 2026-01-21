@@ -4,6 +4,7 @@ import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+const isProcessing = ref(false);
 
 let self = ref(null);
 let chat_rooms = ref([]);
@@ -11,8 +12,8 @@ let chat_rooms = ref([]);
 let errorDialog = ref();
 let errorMessage = ref();
 
-function getAcquintedProfiles() {
-  axios
+async function getAcquintedProfiles() {
+  await axios
     .get("http://api.find-roommate.test/api/chat-rooms", {
       withCredentials: true,
       withXSRFToken: true,
@@ -27,8 +28,8 @@ function getAcquintedProfiles() {
     });
 }
 
-function getSelf() {
-  axios
+async function getSelf() {
+  await axios
     .get("http://api.find-roommate.test/api/me", {
       withCredentials: true,
       withXSRFToken: true,
@@ -38,15 +39,13 @@ function getSelf() {
     });
 }
 
-function ensureAuthenticated() {
-  axios
+async function ensureAuthenticated() {
+  await axios
     .get("http://api.find-roommate.test/api/me", {
       withCredentials: true,
       withXSRFToken: true,
     })
-    .then((response) => {
-      document.getElementById("container").style.display = "flex";
-    })
+    .then((response) => {})
     .catch((error) => {
       if (error.response) {
         if (error.response.status == 401) {
@@ -61,10 +60,12 @@ function ensureAuthenticated() {
     });
 }
 
-onMounted(() => {
-  ensureAuthenticated();
-  getSelf();
-  getAcquintedProfiles();
+onMounted(async () => {
+  isProcessing.value = true;
+  await ensureAuthenticated();
+  await getSelf();
+  await getAcquintedProfiles();
+  isProcessing.value = false;
 });
 </script>
 
@@ -106,8 +107,10 @@ onMounted(() => {
         </template>
       </Card>
     </main>
+
     <NavigationBar />
-    <ErorrDialog ref="errorDialog" :message="errorMessage" />
+    <ErrorDialog ref="errorDialog" :message="errorMessage" />
+    <LoadingDialog :visible="isProcessing" />
   </div>
 </template>
 

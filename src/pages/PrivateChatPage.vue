@@ -6,6 +6,7 @@ import echo from "../echo.js";
 
 const route = useRoute();
 const router = useRouter();
+const isProcessing = ref(false);
 
 let self = ref();
 let chats = ref([]);
@@ -43,16 +44,18 @@ async function getPartner() {
     });
 }
 
-function sendChat() {
+async function sendChat() {
   if (!messageToBeSent.value) {
     return;
   }
+
+  isProcessing.value = true;
 
   let formData = new FormData();
   formData.append("message", messageToBeSent.value);
   messageToBeSent.value = "";
 
-  axios
+  await axios
     .post(
       "http://api.find-roommate.test/api/chat-rooms/" +
         route.params.id +
@@ -65,9 +68,12 @@ function sendChat() {
     )
     .then((response) => {})
     .catch((error) => {
+      // TODO: displays error on failed message send
       console.log(error);
       messageToBeSent.value = formData.get("message");
     });
+
+  isProcessing.value = false;
 }
 
 async function getSelf() {
@@ -81,8 +87,8 @@ async function getSelf() {
     });
 }
 
-function getChats() {
-  axios
+async function getChats() {
+  await axios
     .get(
       "http://api.find-roommate.test/api/chat-rooms/" +
         route.params.id +
@@ -106,15 +112,13 @@ function getChats() {
     });
 }
 
-function ensureAuthenticated() {
-  axios
+async function ensureAuthenticated() {
+  await axios
     .get("http://api.find-roommate.test/api/me", {
       withCredentials: true,
       withXSRFToken: true,
     })
-    .then((response) => {
-      document.getElementById("container").style.display = "flex";
-    })
+    .then((response) => {})
     .catch((error) => {
       if (error.response) {
         if (error.response.status == 401) {
@@ -131,8 +135,6 @@ function ensureAuthenticated() {
 
 function listenForChats(chatRoomId) {
   echo.private("ChatRooms." + chatRoomId).listen("NewChat", (e) => {
-    console.log(e);
-
     chats.value.push(e);
   });
 }
@@ -151,16 +153,21 @@ async function scrollToBottom() {
   }
 }
 
-watch(() => chats.value.length, () => {
-  scrollToBottom();
-});
+watch(
+  () => chats.value.length,
+  () => {
+    scrollToBottom();
+  }
+);
 
 onMounted(async () => {
-  ensureAuthenticated();
+  isProcessing.value = true;
+  await ensureAuthenticated();
   await getSelf();
   await getPartner();
-  getChats();
+  await getChats();
   listenForChats(route.params.id);
+  isProcessing.value = false;
 });
 </script>
 
@@ -205,6 +212,7 @@ onMounted(async () => {
   </Card>
 
   <ErrorDialog ref="errorDialog" :message="errorMessage" />
+  <LoadingDialog :visible="isProcessing" />
 </template>
 
 <style scoped>

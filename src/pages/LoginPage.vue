@@ -4,6 +4,7 @@ import axios from "axios";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+const isProcessing = ref(false);
 
 let phone = ref("");
 let password = ref("");
@@ -11,12 +12,14 @@ let password = ref("");
 let errorDialog = ref();
 let errorMessage = ref();
 
-function login() {
+async function login() {
+  isProcessing.value = true;
+
   let formData = new FormData();
   formData.append("phone", phone.value);
   formData.append("password", password.value);
 
-  axios
+  await axios
     .get("http://api.find-roommate.test/sanctum/csrf-cookie", {
       withCredentials: true,
       withXSRFToken: true,
@@ -45,23 +48,30 @@ function login() {
           }
         });
     });
+
+  isProcessing.value = false;
 }
 
 const validationErrorDialog = ref();
 const errors = ref(null);
 
-function redirectIfLoggedIn() {
-  axios
+async function redirectIfLoggedIn() {
+  await axios
     .get("http://api.find-roommate.test/api/me", {
       withCredentials: true,
       withXSRFToken: true,
     })
     .then((response) => {
       router.push("/find-roommate");
-    });
+    })
+    .catch((error) => {});
 }
 
-onMounted(redirectIfLoggedIn);
+onMounted(async () => {
+  isProcessing.value = true;
+  await redirectIfLoggedIn();
+  isProcessing.value = false;
+});
 </script>
 
 <template>
@@ -114,6 +124,7 @@ onMounted(redirectIfLoggedIn);
   <ValidationErrorDialog ref="validationErrorDialog" :errors="errors" />
 
   <ErrorDialog ref="errorDialog" :message="errorMessage" />
+  <LoadingDialog :visible="isProcessing" />
 </template>
 
 <style scoped>

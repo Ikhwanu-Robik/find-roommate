@@ -5,6 +5,8 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 
+const isProcessing = ref(false);
+
 const isHavingUnsavedChange = ref(false);
 
 const profile_photo = ref(null);
@@ -33,6 +35,8 @@ let errorDialog = ref();
 let errorMessage = ref();
 
 function updateProfile() {
+  isProcessing.value = true;
+
   let formData = new FormData();
   formData.append("full_name", profile.value.full_name);
   formData.append("gender", profile.value.gender);
@@ -58,10 +62,11 @@ function updateProfile() {
       }
     )
     .then((response) => {
+      isProcessing.value = false;
       isHavingUnsavedChange.value = false;
     })
     .catch((error) => {
-      errorMessage.value("Can't save changes, please try again later");
+      errorMessage.value = "Can't save changes, please try again later";
       errorDialog.value.visible = true;
       if (error.response) {
         if (error.response.status == 422) {
@@ -75,23 +80,21 @@ function updateProfile() {
 
 function formatDate(date) {
   let yyyy = date.getFullYear();
-  let mm = String(date.getMonth()).padStart(2, "0");
-  let dd = String(date.getDay()).padStart(2, "0");
+  let mm = String(date.getMonth() + 1).padStart(2, "0");
+  let dd = String(date.getDate()).padStart(2, "0");
 
   return `${yyyy}-${mm}-${dd}`;
 }
 
 let profile = ref(null);
 
-function ensureAuthenticated() {
-  axios
+async function ensureAuthenticated() {
+  await axios
     .get("http://api.find-roommate.test/api/me", {
       withCredentials: true,
       withXSRFToken: true,
     })
-    .then((response) => {
-      document.getElementById("container").style.display = "flex";
-    })
+    .then((response) => {})
     .catch((error) => {
       if (error.response) {
         if (error.response.status == 401) {
@@ -106,8 +109,8 @@ function ensureAuthenticated() {
     });
 }
 
-function getSelfAndDisplay() {
-  axios
+async function getSelfAndDisplay() {
+  await axios
     .get("http://api.find-roommate.test/api/me", {
       withCredentials: true,
       withXSRFToken: true,
@@ -116,12 +119,20 @@ function getSelfAndDisplay() {
       profile.value = response.data.user.profile;
       profile_photo_path.value =
         "http://api.find-roommate.test/storage/" + profile.value.profile_photo;
+    })
+    .catch((error) => {
+      errorMessage.value("Gagal mendapatkan data dirimu, coba lagi nanti");
+      errorDialog.value.visible = true;
+
+      console.log(error);
     });
 }
 
-onMounted(() => {
-  ensureAuthenticated();
-  getSelfAndDisplay();
+onMounted(async () => {
+  isProcessing.value = true;
+  await ensureAuthenticated();
+  await getSelfAndDisplay();
+  isProcessing.value = false;
 });
 </script>
 
@@ -232,6 +243,8 @@ onMounted(() => {
     <ValidationErrorDialog ref="validationErrorDialog" :errors="errors" />
 
     <ErrorDialog ref="errorDialog" :message="errorMessage" />
+
+    <LoadingDialog :visible="isProcessing" />
   </div>
 </template>
 
