@@ -1,23 +1,41 @@
-# find-roommate
+# Find Roommate
 
-This template should help get you started developing with Vue 3 in Vite.
+A platform for user to find a friend with whom to share their lodging rent with. The user may specify the criteria of the desired "roommate" from age, gender, bio, etc.
 
-## Recommended IDE Setup
+---
+Note: this is only the frontend part of the platform. It is meant to be connected with [the API](https://github.com/Ikhwanu-Robik/find-roommate-api)
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+---
 
-## Recommended Browser Setup
+## Features
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+- login and signup with phone number
+- edit profile
+- find a roommate by specifying criteria
+- chat with potential roommate
+- a minimap to choose lodging place criterion
 
-## Customize configuration
+## Tech Stacks
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+- Vue
+- Vue Router
+- Primevue
+- Leaflet + Openstreetmap
+
+## Screenshots
+
+### Login Page
+![login page](screenshots/login.webp)
+
+### Roommate Criteria Form
+![roommate criteria form](screenshots/roommate-criteria.webp)
+
+### Chat Pages
+![chat history](screenshots/chat-history.webp)
+![private chat](screenshots/chat-page.webp)
+
+### Edit Profile Page
+![edit profile](screenshots/edit-profile.webp)
 
 ## Project Setup
 
