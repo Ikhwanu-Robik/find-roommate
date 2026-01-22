@@ -68,7 +68,9 @@ async function sendChat() {
     )
     .then((response) => {})
     .catch((error) => {
-      // TODO: displays error on failed message send
+      errorMessage.value = "Gagal mengirim pesan, coba lagi nanti";
+      errorDialog.value.visible = true;
+
       console.log(error);
       messageToBeSent.value = formData.get("message");
     });
