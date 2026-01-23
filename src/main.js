@@ -9,12 +9,15 @@ import "../node_modules/leaflet/dist/leaflet.js";
 import { createApp } from "vue";
 import App from "./App.vue";
 
+import { createPinia } from "pinia";
+
 import PrimeVue from "primevue/config";
 import Aura from "@primeuix/themes/aura";
 import "primeicons/primeicons.css";
 
 import { createWebHashHistory, createRouter } from "vue-router";
 import FindRoommatePage from "./pages/FindRoommatePage.vue";
+import SelectRoommatePage from "./pages/SelectRoommatePage.vue";
 import LandingPage from "./pages/LandingPage.vue";
 import LoginPage from "./pages/LoginPage.vue";
 import SignupPage from "./pages/SignupPage.vue";
@@ -27,6 +30,7 @@ const routes = [
   { path: "/signup", component: SignupPage },
   { path: "/login", component: LoginPage },
   { path: "/find-roommate", component: FindRoommatePage },
+  { path: "/find-roommate/profiles-recommendation", component: SelectRoommatePage },
   { path: "/profile", component: EditProfilePage },
   { path: "/chats", component: ChatHistoryPage },
   { path: "/chats/:id", component: PrivateChatPage },
@@ -37,6 +41,8 @@ const router = createRouter({
   routes,
 });
 
+const pinia = createPinia();
+
 createApp(App)
   .use(router)
   .use(PrimeVue, {
@@ -44,4 +50,5 @@ createApp(App)
       preset: Aura,
     },
   })
+  .use(pinia)
   .mount("#app");

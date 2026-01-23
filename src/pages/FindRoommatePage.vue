@@ -1,10 +1,18 @@
 <script setup>
+import { useRoommateRecommendationStore } from "@/stores/roommateRecommendationStore";
 import axios from "axios";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
 const isProcessing = ref(false);
+const errors = ref();
+const validationErrorDialog = ref();
+
+let errorDialog = ref();
+let errorMessage = ref();
+
+const lodgings = ref();
 
 const ageRanges = [
   { label: "18 - 24 Tahun", value: "18-24" },
@@ -16,8 +24,58 @@ const genders = [
   { label: "Cewe", value: "female" },
 ];
 
-let errorDialog = ref();
-let errorMessage = ref();
+let gender = ref();
+let age_range = ref();
+let bio = ref();
+let chosen_lodging = ref();
+
+let min_age = computed(() => {
+  if (age_range.value) {
+    return age_range.value.split("-")[0];
+  }
+});
+let max_age = computed(() => {
+  if (age_range.value) {
+    return age_range.value.split("-")[1];
+  }
+});
+
+async function search() {
+  await axios
+    .get("http://api.find-roommate.test/api/match/profiles-recommendation", {
+      withCredentials: true,
+      withXSRFToken: true,
+      params: {
+        gender: gender.value,
+        min_age: min_age.value,
+        max_age: max_age.value,
+        bio: bio.value,
+        lodging_id: chosen_lodging.value?.id,
+      },
+    })
+    .then((response) => {
+      if (response.data.matching_profiles.length) {
+        useRoommateRecommendationStore().recomendations =
+          response.data.matching_profiles;
+
+        router.push("/find-roommate/profiles-recommendation");
+      }
+
+      errorMessage.value = "There's no matching profiles for your criteria";
+      errorDialog.value.visible = true;
+    })
+    .catch((e) => {
+      console.log(e);
+
+      if (e.response.status == 422) {
+        errors.value = e.response.data.errors;
+        validationErrorDialog.value.visible = true;
+      } else {
+        errorMessage.value = "Something is wrong, please try again later";
+        errorDialog.value.visible = true;
+      }
+    });
+}
 
 async function ensureAuthenticated() {
   await axios
@@ -31,13 +89,28 @@ async function ensureAuthenticated() {
         if (error.response.status == 401) {
           router.push("/login");
         } else {
-          errorMessage.value("Server tidak dapat dihubungi, coba lagi nanti");
           errorMessage.value = "Server tidak dapat dihubungi, coba lagi nanti";
           errorDialog.value.visible = true;
           router.push("/");
         }
       }
       console.log(error);
+    });
+}
+
+async function getLodgings() {
+  await axios
+    .get("http://api.find-roommate.test/api/lodgings", {
+      withCredentials: true,
+      withXSRFToken: true,
+    })
+    .then((response) => {
+      lodgings.value = response.data.lodgings;
+    })
+    .catch((error) => {
+      console.log(error);
+      errorMessage.value = "Gagal mendapatkan data kos-kosan! coba lagi nanti";
+      errorDialog.value.visible = true;
     });
 }
 
@@ -72,11 +145,35 @@ function setMapAtCoords(lat = -7.8846, lon = 111.046) {
     attribution:
       '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(map);
+
+  lodgings.value.forEach((lodging) => {
+    let popup = new L.Popup();
+    popup.setContent(lodging.name);
+
+    L.marker([lodging.latitude, lodging.longitude])
+      .addTo(map)
+      .bindPopup(popup, {
+        autoClose: false,
+        closeButton: false,
+        closeOnClick: false,
+      })
+      .openPopup()
+      .addEventListener("click", (e) => {
+        let { lat, lng } = e.latlng;
+
+        chosen_lodging.value = lodgings.value.find((lodging) => {
+          return lodging.latitude == lat && lodging.longitude == lng;
+        });
+      });
+  });
+
+  map.setView([lat, lon], 12);
 }
 
 onMounted(async () => {
   isProcessing.value = true;
   await ensureAuthenticated();
+  await getLodgings();
   await setMap();
   isProcessing.value = false;
 });
@@ -134,6 +231,7 @@ onMounted(async () => {
             <!-- Map -->
             <div class="field">
               <label>Kos</label>
+              <span class="chosen-lodging" v-if="chosen_lodging">{{ chosen_lodging.name }}</span>
               <div id="map"></div>
             </div>
 
@@ -151,6 +249,7 @@ onMounted(async () => {
     <!-- Bottom Navigation -->
     <NavigationBar />
 
+    <ValidationErrorDialog ref="validationErrorDialog" :errors="errors" />
     <ErrorDialog ref="errorDialog" :message="errorMessage" />
     <LoadingDialog :visible="isProcessing" />
   </div>
@@ -202,7 +301,7 @@ label {
 
 /* Map placeholder */
 #map {
-  height: 140px;
+  height: 240px;
   border-radius: 0.75rem;
   background: var(--surface-200);
   display: flex;
