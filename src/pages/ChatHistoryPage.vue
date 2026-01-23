@@ -23,7 +23,7 @@ async function getAcquintedProfiles() {
     })
     .catch((error) => {
       console.log(error);
-      errorMessage.value("Can't get your chat history. Please try again later");
+      errorMessage.value = "Can't get your chat history. Please try again later";
       errorDialog.value.visible = true;
     });
 }
@@ -51,7 +51,7 @@ async function ensureAuthenticated() {
         if (error.response.status == 401) {
           router.push("/login");
         } else {
-          errorMessage.value("Can't contact server. Please try again later.");
+          errorMessage.value = "Can't contact server. Please try again later.";
           errorDialog.value.visible = true;
           router.push("/");
         }

@@ -1,4 +1,3 @@
-// TODO: loading dialog
 <script setup>
 import { ref } from 'vue';
 

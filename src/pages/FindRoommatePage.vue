@@ -32,6 +32,7 @@ async function ensureAuthenticated() {
           router.push("/login");
         } else {
           errorMessage.value("Server tidak dapat dihubungi, coba lagi nanti");
+          errorMessage.value = "Server tidak dapat dihubungi, coba lagi nanti";
           errorDialog.value.visible = true;
           router.push("/");
         }

@@ -6,65 +6,84 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 const isProcessing = ref(false);
 
-let phone = ref("");
-let password = ref("");
+const errorDialog = ref();
+const errorMessage = ref();
 
-let errorDialog = ref();
-let errorMessage = ref();
+const validationErrors = ref(null);
+const validationErrorDialog = ref();
+
+const phone = ref("");
+const password = ref("");
 
 async function login() {
   isProcessing.value = true;
 
-  let formData = new FormData();
-  formData.append("phone", phone.value);
-  formData.append("password", password.value);
+  let formData = prepareFormData();
+  await getCsrfCookie();
 
-  await axios
-    .get("http://api.find-roommate.test/sanctum/csrf-cookie", {
-      withCredentials: true,
-      withXSRFToken: true,
-    })
-    .then((response) => {
-      axios
-        .postForm("http://api.find-roommate.test/login", formData, {
-          withCredentials: true,
-          withXSRFToken: true,
-        })
-        .then((response) => {
-          router.push("/find-roommate");
-        })
-        .catch((e) => {
-          console.log(e);
-
-          if (e.response.status == 422) {
-            errors.value = e.response.data.errors;
-            validationErrorDialog.value.visible = true;
-          } else if (e.response.status == 401) {
-            errorMessage.value("Your phone or password is wrong");
-            errorDialog.value.visible = true;
-          } else {
-            errorMessage.value("Something is wrong, please try again later");
-            errorDialog.value.visible = true;
-          }
-        });
-    });
+  try {
+    await sendLoginRequest(formData);
+    router.push("/find-roommate");
+  } catch (e) {
+    console.log(e);
+    handleFailedLogin(e);
+  }
 
   isProcessing.value = false;
 }
 
-const validationErrorDialog = ref();
-const errors = ref(null);
+function prepareFormData() {
+  let formData = new FormData();
+  formData.append("phone", phone.value);
+  formData.append("password", password.value);
 
-async function redirectIfLoggedIn() {
-  await axios
-    .get("http://api.find-roommate.test/api/me", {
+  return formData;
+}
+
+async function getCsrfCookie() {
+  try {
+    await axios.get("http://api.find-roommate.test/sanctum/csrf-cookie", {
       withCredentials: true,
       withXSRFToken: true,
-    })
-    .then((response) => {
-      router.push("/find-roommate");
-    })
-    .catch((error) => {});
+    });
+  } catch (e) {
+    console.log(e);
+
+    errorMessage.value = "Ada kesalahan! Coba lagi nanti";
+    errorDialog.value.visible = true;
+  }
+}
+
+async function sendLoginRequest(formData) {
+  await axios.postForm("http://api.find-roommate.test/login", formData, {
+    withCredentials: true,
+    withXSRFToken: true,
+  });
+}
+
+function handleFailedLogin(err) {
+  if (err.response.status == 422) {
+    validationErrors.value = err.response.data.errors;
+    validationErrorDialog.value.visible = true;
+  } else if (err.response.status == 401) {
+    errorMessage.value = "Your phone or password is wrong";
+    errorDialog.value.visible = true;
+  } else {
+    errorMessage.value = "Something is wrong, please try again later";
+    errorDialog.value.visible = true;
+  }
+}
+
+async function redirectIfLoggedIn() {
+  try {
+    await axios.get("http://api.find-roommate.test/api/me", {
+      withCredentials: true,
+      withXSRFToken: true,
+    });
+    router.push("/find-roommate");
+  } catch (e) {
+    // can't get self's data = not logged in
+  }
 }
 
 onMounted(async () => {
@@ -121,7 +140,10 @@ onMounted(async () => {
     </Card>
   </div>
 
-  <ValidationErrorDialog ref="validationErrorDialog" :errors="errors" />
+  <ValidationErrorDialog
+    ref="validationErrorDialog"
+    :errors="validationErrors"
+  />
 
   <ErrorDialog ref="errorDialog" :message="errorMessage" />
   <LoadingDialog :visible="isProcessing" />

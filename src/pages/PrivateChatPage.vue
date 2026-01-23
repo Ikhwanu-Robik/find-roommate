@@ -36,9 +36,8 @@ async function getPartner() {
       });
     })
     .catch((error) => {
-      errorMessage.value(
-        "Can't get the other user's data. Please try again later"
-      );
+      errorMessage.value =
+        "Can't get the other user's data. Please try again later";
       errorDialog.value.visible = true;
       console.log(error);
     });
@@ -106,9 +105,8 @@ async function getChats() {
       });
     })
     .catch((error) => {
-      errorMessage.value(
-        "Sorry, we can't get your chats, please try again later"
-      );
+      errorMessage.value =
+        "Sorry, we can't get your chats, please try again later";
       errorDialog.value.visible = true;
       console.log(error);
     });
@@ -126,7 +124,7 @@ async function ensureAuthenticated() {
         if (error.response.status == 401) {
           router.push("/login");
         } else {
-          errorMessage.value("Server tidak dapat dihubungi, coba lagi nanti");
+          errorMessage.value = "Server tidak dapat dihubungi, coba lagi nanti";
           errorDialog.value.visible = true;
           router.push("/");
         }

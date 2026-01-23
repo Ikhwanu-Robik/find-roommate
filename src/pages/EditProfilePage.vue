@@ -100,7 +100,7 @@ async function ensureAuthenticated() {
         if (error.response.status == 401) {
           router.push("/login");
         } else {
-          errorMessage.value("Server tidak dapat dihubungi, coba lagi nanti");
+          errorMessage.value = "Server tidak dapat dihubungi, coba lagi nanti";
           errorDialog.value.visible = true;
           router.push("/");
         }
@@ -121,7 +121,7 @@ async function getSelfAndDisplay() {
         "http://api.find-roommate.test/storage/" + profile.value.profile_photo;
     })
     .catch((error) => {
-      errorMessage.value("Gagal mendapatkan data dirimu, coba lagi nanti");
+      errorMessage.value = "Gagal mendapatkan data dirimu, coba lagi nanti";
       errorDialog.value.visible = true;
 
       console.log(error);
