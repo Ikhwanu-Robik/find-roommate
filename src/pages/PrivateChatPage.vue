@@ -20,18 +20,16 @@ let errorMessage = ref();
 
 async function getPartner() {
   await axios
-    .get("http://api.find-roommate.test/api/chat-rooms", {
+    .get("http://api.find-roommate.test/api/chat-rooms/" + route.params.id, {
       withCredentials: true,
       withXSRFToken: true,
     })
     .then((response) => {
-      response.data.chat_rooms.forEach((chat_room) => {
-        if (chat_room.id == route.params.id) {
-          chat_room.customer_profiles.forEach((profile) => {
-            if (profile.id != self.value.id) {
-              partner.value = profile;
-            }
-          });
+      let chat_room = response.data.chat_room;
+
+      chat_room.customer_profiles.forEach((profile) => {
+        if (profile.id != self.value.id) {
+          partner.value = profile;
         }
       });
     })
