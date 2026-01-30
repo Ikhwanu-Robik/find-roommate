@@ -146,6 +146,18 @@ onMounted(async () => {
   width: 100vw;
 }
 
+@media (min-width: 768px) {
+  .user-card {
+    width: 30vw;
+  }
+}
+
+@media (min-width: 1024px) {
+  .user-card {
+    width: 25vw;
+  }
+}
+
 .profile-photo {
   width: 17em;
 }

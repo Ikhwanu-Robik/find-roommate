@@ -41,6 +41,8 @@ let max_age = computed(() => {
 });
 
 async function search() {
+  isProcessing.value = true;
+
   await axios
     .get("http://api.find-roommate.test/api/match/profiles-recommendation", {
       withCredentials: true,
@@ -75,6 +77,8 @@ async function search() {
         errorDialog.value.visible = true;
       }
     });
+
+  isProcessing.value = false;
 }
 
 async function ensureAuthenticated() {
@@ -188,62 +192,66 @@ onMounted(async () => {
 
     <!-- Content -->
     <main class="content">
-      <Card>
-        <template #content>
-          <form class="form" @submit.prevent="search">
-            <!-- Age -->
-            <div class="field">
-              <label>Usia</label>
-              <Select
-                v-model="age_range"
-                :options="ageRanges"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Pilih usia"
-                class="w-full"
+      <div class="content-wrapper">
+        <Card>
+          <template #content>
+            <form class="form" @submit.prevent="search">
+              <!-- Age -->
+              <div class="field">
+                <label>Usia</label>
+                <Select
+                  v-model="age_range"
+                  :options="ageRanges"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Pilih usia"
+                  class="w-full"
+                />
+              </div>
+
+              <!-- Gender -->
+              <div class="field">
+                <label>Gender</label>
+                <Select
+                  v-model="gender"
+                  :options="genders"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Pilih gender"
+                  class="w-full"
+                />
+              </div>
+
+              <!-- Bio -->
+              <div class="field">
+                <label>Deskripsi</label>
+                <Textarea
+                  v-model="bio"
+                  rows="4"
+                  placeholder="Deskripsikan vibes yang kamu cari"
+                  class="w-full"
+                />
+              </div>
+
+              <!-- Map -->
+              <div class="field">
+                <label>Kos</label>
+                <span class="chosen-lodging" v-if="chosen_lodging">{{
+                  chosen_lodging.name
+                }}</span>
+                <div id="map"></div>
+              </div>
+
+              <Button
+                label="Cari"
+                icon="pi pi-search"
+                class="w-full mt-2"
+                type="submit"
               />
-            </div>
-
-            <!-- Gender -->
-            <div class="field">
-              <label>Gender</label>
-              <Select
-                v-model="gender"
-                :options="genders"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Pilih gender"
-                class="w-full"
-              />
-            </div>
-
-            <!-- Bio -->
-            <div class="field">
-              <label>Deskripsi</label>
-              <Textarea
-                v-model="bio"
-                rows="4"
-                placeholder="Deskripsikan vibes yang kamu cari"
-                class="w-full"
-              />
-            </div>
-
-            <!-- Map -->
-            <div class="field">
-              <label>Kos</label>
-              <span class="chosen-lodging" v-if="chosen_lodging">{{ chosen_lodging.name }}</span>
-              <div id="map"></div>
-            </div>
-
-            <Button
-              label="Cari"
-              icon="pi pi-search"
-              class="w-full mt-2"
-              type="submit"
-            />
-          </form>
-        </template>
-      </Card>
+            </form>
+          </template>
+        </Card>
+      </div>
     </main>
 
     <!-- Bottom Navigation -->
@@ -280,6 +288,13 @@ onMounted(async () => {
 .content {
   flex: 1;
   padding: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.content-wrapper {
+  width: 100%;
+  max-width: 520px; /* sweet spot for forms */
 }
 
 .form {
@@ -302,12 +317,27 @@ label {
 /* Map placeholder */
 #map {
   height: 240px;
-  border-radius: 0.75rem;
-  background: var(--surface-200);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-color-secondary);
-  font-size: 0.85rem;
+}
+
+@media (min-width: 768px) {
+  #map {
+    height: 320px;
+  }
+}
+
+@media (min-width: 1024px) {
+  #map {
+    height: 380px;
+  }
+}
+
+@media (min-width: 768px) {
+  .page-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .form {
+    gap: 1.25rem;
+  }
 }
 </style>

@@ -158,4 +158,11 @@ onMounted(async () => {
   height: 3em;
   border-radius: 50%;
 }
+
+@media (min-width: 768px) {
+  .content {
+    width: 50vw;
+    align-self: center;
+  }
+}
 </style>

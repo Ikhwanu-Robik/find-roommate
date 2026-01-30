@@ -317,4 +317,16 @@ label {
   border-top: 1px solid var(--surface-border);
   background: var(--surface-card);
 }
+
+@media (min-width: 768px) {
+  .content {
+    width: 50vw;
+    align-self: center;
+  }
+
+  .actions {
+    align-self: flex-end;
+    margin-right: 25vw;
+  }
+}
 </style>

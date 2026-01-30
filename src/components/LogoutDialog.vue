@@ -2,11 +2,15 @@
 import axios from "axios";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import LoadingDialog from "./LoadingDialog.vue";
 
 const visible = ref(false);
 const router = useRouter();
+const isProcessing = ref();
 
 const confirmLogout = async () => {
+  isProcessing.value = true;
+
   await axios.post(
     "http://api.find-roommate.test/logout",
     {},
@@ -16,6 +20,7 @@ const confirmLogout = async () => {
     }
   );
 
+  isProcessing.value = false;
   visible.value = false;
   router.push("/");
 };
@@ -42,6 +47,8 @@ defineExpose({
       <Button label="Yes" severity="danger" @click="confirmLogout" />
     </div>
   </Dialog>
+
+  <LoadingDialog :visible="isProcessing"/>
 </template>
 
 <style scoped>

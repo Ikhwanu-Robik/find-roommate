@@ -240,8 +240,14 @@ onMounted(async () => {
   padding: 0.75rem 1rem;
   border-radius: 1rem;
   margin-bottom: 0.5rem;
-  background: var(--p-surface-700);
+  background: var(--p-surface-200);
   align-self: flex-start;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chat-bubble {
+    background: var(--p-surface-700);
+  }
 }
 
 .chat-bubble.self {
