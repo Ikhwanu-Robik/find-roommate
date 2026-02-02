@@ -1,7 +1,8 @@
 <script setup>
+import AuthenticatedLayout from "@/layout/AuthenticatedLayout.vue";
 import { useRoommateRecommendationStore } from "@/stores/roommateRecommendationStore";
 import axios from "axios";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -42,39 +43,10 @@ async function inviteToChat(customerProfileId) {
 
   isProcessing.value = false;
 }
-
-async function ensureAuthenticated() {
-  await axios
-    .get("http://api.find-roommate.test/api/me", {
-      withCredentials: true,
-      withXSRFToken: true,
-    })
-    .then((response) => {})
-    .catch((error) => {
-      isProcessing.value = false;
-
-      if (error.response) {
-        if (error.response.status == 401) {
-          router.push("/login");
-        } else {
-          errorMessage.value = "Server tidak dapat dihubungi, coba lagi nanti";
-          errorDialog.value.visible = true;
-          router.push("/");
-        }
-      }
-      console.log(error);
-    });
-}
-
-onMounted(async () => {
-  isProcessing.value = true;
-  await ensureAuthenticated();
-  isProcessing.value = false;
-});
 </script>
 
 <template>
-  <div class="profile-page">
+  <AuthenticatedLayout>
     <header class="page-header">
       <h1>Rekomendasi Teman Sewa</h1>
     </header>
@@ -104,22 +76,13 @@ onMounted(async () => {
         </template>
       </Card>
     </main>
+  </AuthenticatedLayout>
 
-    <NavigationBar />
-
-    <ErrorDialog ref="errorDialog" :message="errorMessage" />
-    <LoadingDialog :visible="isProcessing" />
-  </div>
+  <ErrorDialog ref="errorDialog" :message="errorMessage" />
+  <LoadingDialog :visible="isProcessing" />
 </template>
 
 <style scoped>
-.profile-page {
-  min-height: 100vh;
-  background: var(--surface-ground);
-  display: flex;
-  flex-direction: column;
-}
-
 .page-header {
   padding: 1rem;
   background: var(--surface-card);

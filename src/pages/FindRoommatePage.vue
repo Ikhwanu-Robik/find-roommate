@@ -1,4 +1,5 @@
 <script setup>
+import AuthenticatedLayout from "@/layout/AuthenticatedLayout.vue";
 import { useRoommateRecommendationStore } from "@/stores/roommateRecommendationStore";
 import axios from "axios";
 import { computed, onMounted, ref } from "vue";
@@ -81,27 +82,6 @@ async function search() {
   isProcessing.value = false;
 }
 
-async function ensureAuthenticated() {
-  await axios
-    .get("http://api.find-roommate.test/api/me", {
-      withCredentials: true,
-      withXSRFToken: true,
-    })
-    .then((response) => {})
-    .catch((error) => {
-      if (error.response) {
-        if (error.response.status == 401) {
-          router.push("/login");
-        } else {
-          errorMessage.value = "Server tidak dapat dihubungi, coba lagi nanti";
-          errorDialog.value.visible = true;
-          router.push("/");
-        }
-      }
-      console.log(error);
-    });
-}
-
 async function getLodgings() {
   await axios
     .get("http://api.find-roommate.test/api/lodgings", {
@@ -176,7 +156,6 @@ function setMapAtCoords(lat = -7.8846, lon = 111.046) {
 
 onMounted(async () => {
   isProcessing.value = true;
-  await ensureAuthenticated();
   await getLodgings();
   await setMap();
   isProcessing.value = false;
@@ -184,7 +163,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="find-page">
+  <AuthenticatedLayout>
     <!-- Header -->
     <header class="page-header">
       <h1>Cari Teman BagiSewa</h1>
@@ -253,24 +232,14 @@ onMounted(async () => {
         </Card>
       </div>
     </main>
+  </AuthenticatedLayout>
 
-    <!-- Bottom Navigation -->
-    <NavigationBar />
-
-    <ValidationErrorDialog ref="validationErrorDialog" :errors="errors" />
-    <ErrorDialog ref="errorDialog" :message="errorMessage" />
-    <LoadingDialog :visible="isProcessing" />
-  </div>
+  <ValidationErrorDialog ref="validationErrorDialog" :errors="errors" />
+  <ErrorDialog ref="errorDialog" :message="errorMessage" />
+  <LoadingDialog :visible="isProcessing" />
 </template>
 
 <style scoped>
-.find-page {
-  min-height: 100vh;
-  background: var(--surface-ground);
-  display: flex;
-  flex-direction: column;
-}
-
 /* Header */
 .page-header {
   padding: 1rem;

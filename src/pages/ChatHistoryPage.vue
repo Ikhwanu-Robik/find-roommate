@@ -1,9 +1,8 @@
 <script setup>
+import AuthenticatedLayout from "@/layout/AuthenticatedLayout.vue";
 import axios from "axios";
 import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
 
-const router = useRouter();
 const isProcessing = ref(false);
 
 let self = ref(null);
@@ -23,7 +22,8 @@ async function getAcquintedProfiles() {
     })
     .catch((error) => {
       console.log(error);
-      errorMessage.value = "Can't get your chat history. Please try again later";
+      errorMessage.value =
+        "Can't get your chat history. Please try again later";
       errorDialog.value.visible = true;
     });
 }
@@ -39,30 +39,8 @@ async function getSelf() {
     });
 }
 
-async function ensureAuthenticated() {
-  await axios
-    .get("http://api.find-roommate.test/api/me", {
-      withCredentials: true,
-      withXSRFToken: true,
-    })
-    .then((response) => {})
-    .catch((error) => {
-      if (error.response) {
-        if (error.response.status == 401) {
-          router.push("/login");
-        } else {
-          errorMessage.value = "Can't contact server. Please try again later.";
-          errorDialog.value.visible = true;
-          router.push("/");
-        }
-      }
-      console.log(error);
-    });
-}
-
 onMounted(async () => {
   isProcessing.value = true;
-  await ensureAuthenticated();
   await getSelf();
   await getAcquintedProfiles();
   isProcessing.value = false;
@@ -70,7 +48,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="chat-history-page">
+  <AuthenticatedLayout>
     <header class="page-header">
       <h1>Riwayat Chat</h1>
     </header>
@@ -107,21 +85,13 @@ onMounted(async () => {
         </template>
       </Card>
     </main>
+  </AuthenticatedLayout>
 
-    <NavigationBar />
-    <ErrorDialog ref="errorDialog" :message="errorMessage" />
-    <LoadingDialog :visible="isProcessing" />
-  </div>
+  <ErrorDialog ref="errorDialog" :message="errorMessage" />
+  <LoadingDialog :visible="isProcessing" />
 </template>
 
 <style scoped>
-.chat-history-page {
-  min-height: 100vh;
-  background: var(--surface-ground);
-  display: flex;
-  flex-direction: column;
-}
-
 /* Header */
 .page-header {
   padding: 1rem;

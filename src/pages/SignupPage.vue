@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
+import { formatDate } from "../utils.js";
 
 const router = useRouter();
 const isProcessing = ref(false);
@@ -38,8 +39,6 @@ let errorMessage = ref();
 async function signup() {
   isProcessing.value = true;
 
-  console.log(formatDate(birthdate.value));
-
   let formData = new FormData();
   formData.append("name", full_name.value);
   formData.append("profile_photo", profile_photo.value);
@@ -75,14 +74,6 @@ async function signup() {
     });
 
   isProcessing.value = false;
-}
-
-function formatDate(date) {
-  let yyyy = date.getFullYear();
-  let mm = String(date.getMonth() + 1).padStart(2, "0");
-  let dd = String(date.getDate()).padStart(2, "0");
-
-  return `${yyyy}-${mm}-${dd}`;
 }
 
 async function redirectIfLoggedIn() {

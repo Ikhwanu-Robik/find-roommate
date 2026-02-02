@@ -1,21 +1,16 @@
 <script setup>
+import AuthenticatedLayout from "@/layout/AuthenticatedLayout.vue";
 import axios from "axios";
 import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-
-const router = useRouter();
+import { formatDate } from "../utils.js";
 
 const isProcessing = ref(false);
+const errors = ref();
+const validationErrorDialog = ref();
+const errorDialog = ref();
+const errorMessage = ref();
 
 const isHavingUnsavedChange = ref(false);
-
-const profile_photo = ref(null);
-const profile_photo_path = ref(null);
-
-const genders = [
-  { label: "Male", value: "male" },
-  { label: "Female", value: "female" },
-];
 
 const markUnsaved = () => {
   isHavingUnsavedChange.value = true;
@@ -28,11 +23,14 @@ const handleFileSelection = (event) => {
   markUnsaved();
 };
 
-let errors = ref();
-let validationErrorDialog = ref();
+const genders = [
+  { label: "Male", value: "male" },
+  { label: "Female", value: "female" },
+];
 
-let errorDialog = ref();
-let errorMessage = ref();
+let profile = ref(null);
+const profile_photo = ref(null);
+const profile_photo_path = ref(null);
 
 function updateProfile() {
   isProcessing.value = true;
@@ -78,37 +76,6 @@ function updateProfile() {
     });
 }
 
-function formatDate(date) {
-  let yyyy = date.getFullYear();
-  let mm = String(date.getMonth() + 1).padStart(2, "0");
-  let dd = String(date.getDate()).padStart(2, "0");
-
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-let profile = ref(null);
-
-async function ensureAuthenticated() {
-  await axios
-    .get("http://api.find-roommate.test/api/me", {
-      withCredentials: true,
-      withXSRFToken: true,
-    })
-    .then((response) => {})
-    .catch((error) => {
-      if (error.response) {
-        if (error.response.status == 401) {
-          router.push("/login");
-        } else {
-          errorMessage.value = "Server tidak dapat dihubungi, coba lagi nanti";
-          errorDialog.value.visible = true;
-          router.push("/");
-        }
-      }
-      console.log(error);
-    });
-}
-
 async function getSelfAndDisplay() {
   await axios
     .get("http://api.find-roommate.test/api/me", {
@@ -130,14 +97,13 @@ async function getSelfAndDisplay() {
 
 onMounted(async () => {
   isProcessing.value = true;
-  await ensureAuthenticated();
   await getSelfAndDisplay();
   isProcessing.value = false;
 });
 </script>
 
 <template>
-  <div class="profile-page">
+  <AuthenticatedLayout>
     <!-- Header -->
     <header class="page-header">
       <h1>Profil</h1>
@@ -237,25 +203,14 @@ onMounted(async () => {
         @click="updateProfile"
       />
     </footer>
+  </AuthenticatedLayout>
 
-    <NavigationBar />
-
-    <ValidationErrorDialog ref="validationErrorDialog" :errors="errors" />
-
-    <ErrorDialog ref="errorDialog" :message="errorMessage" />
-
-    <LoadingDialog :visible="isProcessing" />
-  </div>
+  <ValidationErrorDialog ref="validationErrorDialog" :errors="errors" />
+  <ErrorDialog ref="errorDialog" :message="errorMessage" />
+  <LoadingDialog :visible="isProcessing" />
 </template>
 
 <style scoped>
-.profile-page {
-  min-height: 100vh;
-  background: var(--surface-ground);
-  display: flex;
-  flex-direction: column;
-}
-
 /* Header */
 .page-header {
   padding: 1rem;
