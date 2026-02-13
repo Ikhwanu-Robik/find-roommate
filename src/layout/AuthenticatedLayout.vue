@@ -3,6 +3,8 @@ import axios from "axios";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
+const { shouldDisplayNav = true } = defineProps({ shouldDisplayNav: Boolean });
+
 const router = useRouter();
 const isProcessing = ref(false);
 
@@ -37,7 +39,7 @@ onMounted(async () => {
 <template>
   <div class="page">
     <slot></slot>
-    <NavigationBar />
+    <NavigationBar v-if="shouldDisplayNav" />
   </div>
 
   <ErrorDialog ref="errorDialog" :message="errorMessage" />

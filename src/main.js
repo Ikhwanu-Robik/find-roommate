@@ -21,13 +21,17 @@ import SelectRoommatePage from "./pages/SelectRoommatePage.vue";
 import LandingPage from "./pages/LandingPage.vue";
 import LoginPage from "./pages/LoginPage.vue";
 import SignupPage from "./pages/SignupPage.vue";
+import SignupPageDetails from "./pages/CreateProfile.vue";
 import EditProfilePage from "./pages/EditProfilePage.vue";
 import ChatHistoryPage from "./pages/ChatHistoryPage.vue";
 import PrivateChatPage from "./pages/PrivateChatPage.vue";
+import FindRoommateDemo from "./pages/FindRoommateDemo.vue";
 
 const routes = [
   { path: "/", component: LandingPage },
   { path: "/signup", component: SignupPage },
+  { path: "/create-profile", component: SignupPageDetails },
+  { path: "/try-find-roommate", component: FindRoommateDemo },
   { path: "/login", component: LoginPage },
   { path: "/find-roommate", component: FindRoommatePage },
   { path: "/find-roommate/profiles-recommendation", component: SelectRoommatePage },

@@ -2,70 +2,66 @@
 import { onMounted, ref } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
-import { formatDate } from "../utils.js";
 
 const router = useRouter();
 const isProcessing = ref(false);
+const errorDialog = ref();
+const errorMessage = ref();
+const validationErrors = ref(null);
+const validationErrorDialog = ref();
 
-let full_name = ref("");
-
-let profile_photo = ref("");
-let profile_photo_path = ref("");
-
+let name = ref("");
 let phone = ref("");
 let password = ref("");
-let gender = ref("male");
-let birthdate = ref("");
-let address = ref("");
-let bio = ref("");
-
-const genders = [
-  { label: "Cowo", value: "male" },
-  { label: "Cewe", value: "female" },
-];
-
-function handleFileSelection(event) {
-  const file = event.files[0];
-  profile_photo.value = file;
-  profile_photo_path.value = URL.createObjectURL(file);
-}
-
-let validationErrorDialog = ref();
-let errors = ref();
-
-let errorDialog = ref();
-let errorMessage = ref();
 
 async function signup() {
   isProcessing.value = true;
 
-  let formData = new FormData();
-  formData.append("name", full_name.value);
-  formData.append("profile_photo", profile_photo.value);
-  formData.append("phone", phone.value);
-  formData.append("password", password.value);
-  formData.append("gender", gender.value);
-  if (birthdate.value != "") {
-    formData.append("birthdate", formatDate(birthdate.value));
-  }
-  formData.append("address", address.value);
-  formData.append("bio", bio.value);
-
   await axios
-    .postForm("http://api.find-roommate.test/api/signup", formData, {
-      withCredentials: true,
-      withXSRFToken: true,
-    })
-    .then((response) => {
-      errorMessage.value =
-        "Sorry, there' no error. Your signup was successful. I just don't wanna modify the text.";
-      errorDialog.value.visible = true;
-      router.push("/login");
+    .post(
+      "http://api.find-roommate.test/api/v2/signup",
+      {
+        name: name.value,
+        phone: phone.value,
+        password: password.value,
+      },
+      {
+        withCredentials: true,
+        withXSRFToken: true,
+      }
+    )
+    .then(async (response) => {
+      await axios
+        .postForm(
+          "http://api.find-roommate.test/login",
+          {
+            phone: phone.value,
+            password: password.value,
+          },
+          {
+            withCredentials: true,
+            withXSRFToken: true,
+          }
+        )
+        .then((response) => {
+          router.push("/create-profile");
+        })
+        .catch((e) => {
+          console.log(e);
+          if (e.response.status == 422) {
+            validationErrors.value = e.response.data.errors;
+            validationErrorDialog.value.visible = true;
+          } else {
+            errorMessage.value = "Something is wrong, please try again later";
+            errorDialog.value.visible = true;
+          }
+        });
     })
     .catch((e) => {
       console.log(e);
+
       if (e.response.status == 422) {
-        errors.value = e.response.data.errors;
+        validationErrors.value = e.response.data.errors;
         validationErrorDialog.value.visible = true;
       } else {
         errorMessage.value = "Something is wrong, please try again later";
@@ -110,32 +106,8 @@ onMounted(async () => {
       <template #content>
         <form class="form" @submit.prevent="signup">
           <div class="field">
-            <label for="full_name">Full Name</label>
-            <InputText
-              id="full_name"
-              placeholder="Ahmad Kasim"
-              v-model="full_name"
-              class="w-full"
-            />
-          </div>
-
-          <div class="field">
-            <label>Foto Profil</label>
-            <FileUpload
-              mode="basic"
-              accept="image/*"
-              chooseLabel="Pilih Foto"
-              customUpload
-              @select="handleFileSelection"
-              class="w-full"
-            />
-
-            <img
-              v-if="profile_photo_path"
-              :src="profile_photo_path"
-              alt="Preview Foto Profil"
-              class="photo-preview"
-            />
+            <label for="name">Name</label>
+            <InputText id="name" placeholder="" v-model="name" class="w-full" />
           </div>
 
           <div class="field">
@@ -160,62 +132,18 @@ onMounted(async () => {
               class="w-full"
             />
           </div>
-
-          <div class="field">
-            <label for="gender">Gender</label>
-            <Select
-              id="gender"
-              v-model="gender"
-              :options="genders"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Pilih gender"
-              class="w-full"
-            />
-          </div>
-
-          <div class="field">
-            <label for="birthdate">Ulang Tahun</label>
-            <DatePicker
-              id="birthdate"
-              v-model="birthdate"
-              dateFormat="yy-mm-dd"
-              showIcon
-              class="w-full"
-            />
-          </div>
-
-          <div class="field">
-            <label for="address">Alamat</label>
-            <InputText
-              id="address"
-              placeholder="Jakarta"
-              v-model="address"
-              class="w-full"
-            />
-          </div>
-
-          <div class="field">
-            <label for="bio">Bio</label>
-            <Textarea
-              id="bio"
-              v-model="bio"
-              rows="4"
-              placeholder="Tell me about yourself"
-              class="w-full"
-            />
-          </div>
-
           <Button label="Signup" type="submit" class="w-full mt-3" />
         </form>
       </template>
     </Card>
   </div>
 
-  <ValidationErrorDialog ref="validationErrorDialog" :errors="errors" />
-
-  <ErrorDialog ref="errorDialog" :message="errorMessage" />
+  <ValidationErrorDialog
+    ref="validationErrorDialog"
+    :errors="validationErrors"
+  />
   <LoadingDialog :visible="isProcessing" />
+  <ErrorDialog ref="errorDialog" :message="errorMessage" />
 </template>
 
 <style scoped>
