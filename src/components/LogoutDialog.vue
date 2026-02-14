@@ -12,7 +12,7 @@ const confirmLogout = async () => {
   isProcessing.value = true;
 
   await axios.post(
-    "http://api.find-roommate.test/logout",
+    import.meta.env.VITE_API_BASE_URL + "/logout",
     {},
     {
       withCredentials: true,
@@ -48,7 +48,7 @@ defineExpose({
     </div>
   </Dialog>
 
-  <LoadingDialog :visible="isProcessing"/>
+  <LoadingDialog :visible="isProcessing" />
 </template>
 
 <style scoped>

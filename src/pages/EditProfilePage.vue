@@ -52,7 +52,7 @@ function updateProfile() {
 
   axios
     .post(
-      "http://api.find-roommate.test/api/profiles/" + profile.value.id,
+      import.meta.env.VITE_API_BASE_URL + "/api/profiles/" + profile.value.id,
       formData,
       {
         withCredentials: true,
@@ -78,14 +78,16 @@ function updateProfile() {
 
 async function getSelfAndDisplay() {
   await axios
-    .get("http://api.find-roommate.test/api/me", {
+    .get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
       withCredentials: true,
       withXSRFToken: true,
     })
     .then((response) => {
       profile.value = response.data.user.profile;
       profile_photo_path.value =
-        "http://api.find-roommate.test/storage/" + profile.value.profile_photo;
+        import.meta.env.VITE_API_BASE_URL +
+        "/storage/" +
+        profile.value.profile_photo;
     })
     .catch((error) => {
       errorMessage.value = "Gagal mendapatkan data dirimu, coba lagi nanti";

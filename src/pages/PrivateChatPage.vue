@@ -20,10 +20,13 @@ let errorMessage = ref();
 
 async function getPartner() {
   await axios
-    .get("http://api.find-roommate.test/api/chat-rooms/" + route.params.id, {
-      withCredentials: true,
-      withXSRFToken: true,
-    })
+    .get(
+      import.meta.env.VITE_API_BASE_URL + "/api/chat-rooms/" + route.params.id,
+      {
+        withCredentials: true,
+        withXSRFToken: true,
+      }
+    )
     .then((response) => {
       let chat_room = response.data.chat_room;
 
@@ -54,7 +57,8 @@ async function sendChat() {
 
   await axios
     .post(
-      "http://api.find-roommate.test/api/chat-rooms/" +
+      import.meta.env.VITE_API_BASE_URL +
+        "/api/chat-rooms/" +
         route.params.id +
         "/chats",
       formData,
@@ -77,7 +81,7 @@ async function sendChat() {
 
 async function getSelf() {
   await axios
-    .get("http://api.find-roommate.test/api/me", {
+    .get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
       withCredentials: true,
       withXSRFToken: true,
     })
@@ -89,7 +93,8 @@ async function getSelf() {
 async function getChats() {
   await axios
     .get(
-      "http://api.find-roommate.test/api/chat-rooms/" +
+      import.meta.env.VITE_API_BASE_URL +
+        "/api/chat-rooms/" +
         route.params.id +
         "/chats",
       {

@@ -54,17 +54,20 @@ async function search() {
   isProcessing.value = true;
 
   await axios
-    .get("http://api.find-roommate.test/api/match/profiles-recommendation", {
-      withCredentials: true,
-      withXSRFToken: true,
-      params: {
-        gender: gender.value,
-        min_age: min_age.value,
-        max_age: max_age.value,
-        bio: bio.value,
-        lodging_id: chosen_lodging.value?.id,
-      },
-    })
+    .get(
+      import.meta.env.VITE_API_BASE_URL + "/api/match/profiles-recommendation",
+      {
+        withCredentials: true,
+        withXSRFToken: true,
+        params: {
+          gender: gender.value,
+          min_age: min_age.value,
+          max_age: max_age.value,
+          bio: bio.value,
+          lodging_id: chosen_lodging.value?.id,
+        },
+      }
+    )
     .then((response) => {
       if (response.data.matching_profiles.length) {
         useRoommateRecommendationStore().recomendations =
@@ -93,7 +96,7 @@ async function search() {
 
 async function getLodgings() {
   await axios
-    .get("http://api.find-roommate.test/api/lodgings", {
+    .get(import.meta.env.VITE_API_BASE_URL + "/api/lodgings", {
       withCredentials: true,
       withXSRFToken: true,
     })
@@ -225,7 +228,7 @@ onMounted(async () => {
               <label>Kos</label>
               <span class="chosen-lodging" v-if="chosen_lodging">{{
                 chosen_lodging.name
-              }}</span> 
+              }}</span>
               <div id="map"></div>
             </div>
 

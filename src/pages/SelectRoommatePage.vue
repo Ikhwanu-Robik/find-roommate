@@ -20,7 +20,8 @@ async function inviteToChat(customerProfileId) {
   let formData = new FormData();
   await axios
     .post(
-      "http://api.find-roommate.test/api/match/profiles/" +
+      import.meta.env.VITE_API_BASE_URL +
+        "/api/match/profiles/" +
         customerProfileId +
         "/chat",
       formData,
@@ -56,7 +57,7 @@ async function inviteToChat(customerProfileId) {
         <template #content>
           <img
             :src="
-              'http://api.find-roommate.test/storage/' +
+              'http://api.bagisewa.com/storage/' +
               user.customer_profile.profile_photo
             "
             alt="profile_photo"

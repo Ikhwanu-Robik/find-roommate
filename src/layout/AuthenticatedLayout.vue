@@ -10,7 +10,7 @@ const isProcessing = ref(false);
 
 async function ensureAuthenticated() {
   await axios
-    .get("http://api.find-roommate.test/api/me", {
+    .get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
       withCredentials: true,
       withXSRFToken: true,
     })

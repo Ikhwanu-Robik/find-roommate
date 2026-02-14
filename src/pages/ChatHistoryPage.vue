@@ -13,7 +13,7 @@ let errorMessage = ref();
 
 async function getAcquintedProfiles() {
   await axios
-    .get("http://api.find-roommate.test/api/chat-rooms", {
+    .get(import.meta.env.VITE_API_BASE_URL + "/api/chat-rooms", {
       withCredentials: true,
       withXSRFToken: true,
     })
@@ -30,7 +30,7 @@ async function getAcquintedProfiles() {
 
 async function getSelf() {
   await axios
-    .get("http://api.find-roommate.test/api/me", {
+    .get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
       withCredentials: true,
       withXSRFToken: true,
     })
@@ -62,7 +62,7 @@ onMounted(async () => {
                   <Button class="contact-button">
                     <img
                       :src="
-                        'http://api.find-roommate.test/storage/' +
+                        'http://api.bagisewa.com/storage/' +
                         (chat_room.customer_profiles[0].id != self.id
                           ? chat_room.customer_profiles[0].profile_photo
                           : chat_room.customer_profiles[1].profile_photo)

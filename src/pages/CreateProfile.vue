@@ -11,8 +11,6 @@ const validationErrors = ref(null);
 const validationErrorDialog = ref();
 const isProcessing = ref(false);
 
-const self = ref();
-
 let full_name = ref("");
 let profile_photo = ref("");
 let profile_photo_path = ref("");
@@ -47,7 +45,8 @@ async function createProfile() {
 
   await axios
     .postForm(
-      "http://api.find-roommate.test/api/v2/users/" +
+      import.meta.env.VITE_API_BASE_URL +
+        "/api/v2/users/" +
         self.value.id +
         "/profiles",
       formData,
@@ -75,7 +74,7 @@ async function createProfile() {
 
 async function getSelf() {
   await axios
-    .get("http://api.find-roommate.test/api/me", {
+    .get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
       withCredentials: true,
       withXSRFToken: true,
     })

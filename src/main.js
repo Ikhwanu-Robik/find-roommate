@@ -15,6 +15,8 @@ import PrimeVue from "primevue/config";
 import Aura from "@primeuix/themes/aura";
 import "primeicons/primeicons.css";
 
+import GoogleSignInPlugin from "vue3-google-signin";
+
 import { createWebHashHistory, createRouter } from "vue-router";
 import FindRoommatePage from "./pages/FindRoommatePage.vue";
 import SelectRoommatePage from "./pages/SelectRoommatePage.vue";
@@ -34,7 +36,10 @@ const routes = [
   { path: "/try-find-roommate", component: FindRoommateDemo },
   { path: "/login", component: LoginPage },
   { path: "/find-roommate", component: FindRoommatePage },
-  { path: "/find-roommate/profiles-recommendation", component: SelectRoommatePage },
+  {
+    path: "/find-roommate/profiles-recommendation",
+    component: SelectRoommatePage,
+  },
   { path: "/profile", component: EditProfilePage },
   { path: "/chats", component: ChatHistoryPage },
   { path: "/chats/:id", component: PrivateChatPage },
@@ -55,4 +60,7 @@ createApp(App)
     },
   })
   .use(pinia)
+  .use(GoogleSignInPlugin, {
+    clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+  })
   .mount("#app");

@@ -17,9 +17,25 @@ let password = ref("");
 async function signup() {
   isProcessing.value = true;
 
+  if (!name.value || !phone.value || !password.value) {
+    errorMessage.value = "Semua kolom harus diisi";
+    errorDialog.value.visible = true;
+
+    isProcessing.value = false;
+    return;
+  }
+  let regexp = /^08[1-9]{1}\d{1}-{1}\d{4}-\d{2,5}$/;
+  if (!regexp.test(phone.value)) {
+    errorMessage.value = "No telepon harus berformat 08xx-xxxx-xxxxx";
+    errorDialog.value.visible = true;
+
+    isProcessing.value = false;
+    return;
+  }
+
   await axios
     .post(
-      "http://api.find-roommate.test/api/v2/signup",
+      import.meta.env.VITE_API_BASE_URL + "/api/v2/signup",
       {
         name: name.value,
         phone: phone.value,
@@ -33,7 +49,7 @@ async function signup() {
     .then(async (response) => {
       await axios
         .postForm(
-          "http://api.find-roommate.test/login",
+          import.meta.env.VITE_API_BASE_URL + "/login",
           {
             phone: phone.value,
             password: password.value,
@@ -52,7 +68,7 @@ async function signup() {
             validationErrors.value = e.response.data.errors;
             validationErrorDialog.value.visible = true;
           } else {
-            errorMessage.value = "Something is wrong, please try again later";
+            errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
             errorDialog.value.visible = true;
           }
         });
@@ -64,7 +80,7 @@ async function signup() {
         validationErrors.value = e.response.data.errors;
         validationErrorDialog.value.visible = true;
       } else {
-        errorMessage.value = "Something is wrong, please try again later";
+        errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
         errorDialog.value.visible = true;
       }
     });
@@ -72,9 +88,65 @@ async function signup() {
   isProcessing.value = false;
 }
 
+async function handleGoogleSigninSuccess(response) {
+  isProcessing.value = true;
+
+  const { credential } = response;
+
+  await axios
+    .post(
+      import.meta.env.VITE_API_BASE_URL + "/api/auth/google",
+      {
+        credential: credential,
+      },
+      {
+        withCredentials: true,
+        withXSRFToken: true,
+      }
+    )
+    .then(async (response) => {
+      router.push("/create-profile");
+    })
+    .catch((e) => {
+      console.log(e);
+
+      if (e.response.status == 422) {
+        validationErrors.value = e.response.data.errors;
+        validationErrorDialog.value.visible = true;
+      } else {
+        errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
+        errorDialog.value.visible = true;
+      }
+    });
+
+  isProcessing.value = false;
+}
+
+function handleGoogleSigninError() {
+  errorMessage.value = "Google Sign-in error, coba lagi nanti";
+  errorDialog.value.visible = true;
+}
+
+function enforcePhoneNumberFormat(e) {
+  let value = e.target.value.replace(/\D/g, "");
+  let formatted = "";
+
+  if (value.length > 0) {
+    formatted += value.substring(0, 4);
+  }
+  if (value.length > 4) {
+    formatted += "-" + value.substring(4, 8);
+  }
+  if (value.length > 8) {
+    formatted += "-" + value.substring(8, 13);
+  }
+
+  phone.value = formatted;
+}
+
 async function redirectIfLoggedIn() {
   await axios
-    .get("http://api.find-roommate.test/api/me", {
+    .get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
       withCredentials: true,
       withXSRFToken: true,
     })
@@ -106,18 +178,25 @@ onMounted(async () => {
       <template #content>
         <form class="form" @submit.prevent="signup">
           <div class="field">
-            <label for="name">Name</label>
-            <InputText id="name" placeholder="" v-model="name" class="w-full" />
+            <label for="name">Username</label>
+            <InputText
+              id="name"
+              placeholder="username"
+              v-model="name"
+              class="w-full"
+            />
           </div>
 
           <div class="field">
-            <label for="phone">Phone</label>
+            <label for="phone">Telepon</label>
             <InputText
               id="phone"
               type="tel"
-              placeholder="0812-9087-1029"
+              placeholder="telepon"
               v-model="phone"
               class="w-full"
+              maxlength="15"
+              @input="enforcePhoneNumberFormat"
             />
           </div>
 
@@ -128,12 +207,17 @@ onMounted(async () => {
               v-model="password"
               toggleMask
               :feedback="false"
-              placeholder="Password"
+              placeholder="password"
               class="w-full"
             />
           </div>
           <Button label="Signup" type="submit" class="w-full mt-3" />
         </form>
+        <GoogleSignInButton
+          @success="handleGoogleSigninSuccess"
+          @error="handleGoogleSigninError"
+        >
+        </GoogleSignInButton>
       </template>
     </Card>
   </div>

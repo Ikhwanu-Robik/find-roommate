@@ -9,7 +9,7 @@ import { PrimeVueResolver } from '@primevue/auto-import-resolver';
 // https://vite.dev/config/
 export default defineConfig({
   server: {
-    host: 'find-roommate.test',
+    host: 'bagisewa.com',
     port: 5173,
   },
   plugins: [

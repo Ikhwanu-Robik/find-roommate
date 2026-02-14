@@ -19,20 +19,36 @@ async function login() {
   isProcessing.value = true;
 
   let formData = prepareFormData();
-  await getCsrfCookie();
+  if (formData) {
+    await getCsrfCookie();
 
-  try {
-    await sendLoginRequest(formData);
-    router.push("/find-roommate");
-  } catch (e) {
-    console.log(e);
-    handleFailedLogin(e);
+    try {
+      await sendLoginRequest(formData);
+      router.push("/find-roommate");
+    } catch (e) {
+      console.log(e);
+      handleFailedLogin(e);
+    }
   }
 
   isProcessing.value = false;
 }
 
 function prepareFormData() {
+  if (!phone.value || !password.value) {
+    errorMessage.value = "Semua kolom harus diisi";
+    errorDialog.value.visible = true;
+
+    return false;
+  }
+  let regexp = /^08[1-9]{1}\d{1}-{1}\d{4}-\d{2,5}$/;
+  if (!regexp.test(phone.value)) {
+    errorMessage.value = "No telepon harus berformat 08xx-xxxx-xxxxx";
+    errorDialog.value.visible = true;
+
+    return false;
+  }
+
   let formData = new FormData();
   formData.append("phone", phone.value);
   formData.append("password", password.value);
@@ -42,20 +58,23 @@ function prepareFormData() {
 
 async function getCsrfCookie() {
   try {
-    await axios.get("http://api.find-roommate.test/sanctum/csrf-cookie", {
-      withCredentials: true,
-      withXSRFToken: true,
-    });
+    await axios.get(
+      import.meta.env.VITE_API_BASE_URL + "/sanctum/csrf-cookie",
+      {
+        withCredentials: true,
+        withXSRFToken: true,
+      }
+    );
   } catch (e) {
     console.log(e);
 
-    errorMessage.value = "Ada kesalahan! Coba lagi nanti";
+    errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
     errorDialog.value.visible = true;
   }
 }
 
 async function sendLoginRequest(formData) {
-  await axios.postForm("http://api.find-roommate.test/login", formData, {
+  await axios.postForm(import.meta.env.VITE_API_BASE_URL + "/login", formData, {
     withCredentials: true,
     withXSRFToken: true,
   });
@@ -66,17 +85,73 @@ function handleFailedLogin(err) {
     validationErrors.value = err.response.data.errors;
     validationErrorDialog.value.visible = true;
   } else if (err.response.status == 401) {
-    errorMessage.value = "Your phone or password is wrong";
+    errorMessage.value = "No telepon atau passwordmu salah";
     errorDialog.value.visible = true;
   } else {
-    errorMessage.value = "Something is wrong, please try again later";
+    errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
     errorDialog.value.visible = true;
   }
 }
 
+async function handleGoogleSigninSuccess(response) {
+  isProcessing.value = true;
+
+  const { credential } = response;
+
+  await axios
+    .post(
+      import.meta.env.VITE_API_BASE_URL + "/api/auth/google",
+      {
+        credential: credential,
+      },
+      {
+        withCredentials: true,
+        withXSRFToken: true,
+      }
+    )
+    .then(async (response) => {
+      router.push("/find-roommate");
+    })
+    .catch((e) => {
+      console.log(e);
+
+      if (e.response.status == 422) {
+        validationErrors.value = e.response.data.errors;
+        validationErrorDialog.value.visible = true;
+      } else {
+        errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
+        errorDialog.value.visible = true;
+      }
+    });
+
+  isProcessing.value = false;
+}
+
+function handleGoogleSigninError() {
+  errorMessage.value = "Google Sign-in error, coba lagi nanti";
+  errorDialog.value.visible = true;
+}
+
+function enforcePhoneNumberFormat(e) {
+  let value = e.target.value.replace(/\D/g, "");
+  let formatted = "";
+
+  if (value.length > 0) {
+    formatted += value.substring(0, 4);
+  }
+  if (value.length > 4) {
+    formatted += "-" + value.substring(4, 8);
+  }
+  if (value.length > 8) {
+    formatted += "-" + value.substring(8, 13);
+  }
+
+  phone.value = formatted;
+}
+
 async function redirectIfLoggedIn() {
   try {
-    await axios.get("http://api.find-roommate.test/api/me", {
+    await axios.get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
       withCredentials: true,
       withXSRFToken: true,
     });
@@ -106,12 +181,14 @@ onMounted(async () => {
       <template #content>
         <form class="form" @submit.prevent="login">
           <div class="field">
-            <label for="phone">Phone</label>
+            <label for="phone">Telepon</label>
             <InputText
               id="phone"
               type="tel"
-              placeholder="0812-9087-1029"
+              placeholder="telepon"
               v-model="phone"
+              maxlength="15"
+              @input="enforcePhoneNumberFormat"
               class="w-full"
             />
           </div>
@@ -130,6 +207,12 @@ onMounted(async () => {
 
           <Button label="Login" type="submit" class="w-full mt-3" />
         </form>
+
+        <GoogleSignInButton
+          @success="handleGoogleSigninSuccess"
+          @error="handleGoogleSigninError"
+        >
+        </GoogleSignInButton>
 
         <div class="footer">
           <RouterLink to="/signup" class="signup-link">
