@@ -1,171 +1,46 @@
 <script setup>
-import { onMounted, ref } from "vue";
-import axios from "axios";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { supabase } from "../../utils/supabase";
 
 const router = useRouter();
 const isProcessing = ref(false);
-
 const errorDialog = ref();
 const errorMessage = ref();
 
-const validationErrors = ref(null);
-const validationErrorDialog = ref();
-
-const phone = ref("");
+const email = ref("");
 const password = ref("");
 
 async function login() {
   isProcessing.value = true;
 
-  let formData = prepareFormData();
-  if (formData) {
-    await getCsrfCookie();
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.value,
+      password: password.value,
+    });
 
-    try {
-      await sendLoginRequest(formData);
+    if (error) throw error;
+  } catch (error) {
+    errorMessage.value = error;
+    errorDialog.value.visible = true;
+  }
+
+  try {
+    const { data } = await supabase.from("profiles").select("*");
+
+    if (data) {
       router.push("/find-roommate");
-    } catch (e) {
-      console.log(e);
-      handleFailedLogin(e);
+    } else {
+      router.push("/create-profile");
     }
+  } catch (error) {
+    errorMessage.value = error;
+    errorDialog.value.visible = true;
   }
 
   isProcessing.value = false;
 }
-
-function prepareFormData() {
-  if (!phone.value || !password.value) {
-    errorMessage.value = "Semua kolom harus diisi";
-    errorDialog.value.visible = true;
-
-    return false;
-  }
-  let regexp = /^08[1-9]{1}\d{1}-{1}\d{4}-\d{2,5}$/;
-  if (!regexp.test(phone.value)) {
-    errorMessage.value = "No telepon harus berformat 08xx-xxxx-xxxxx";
-    errorDialog.value.visible = true;
-
-    return false;
-  }
-
-  let formData = new FormData();
-  formData.append("phone", phone.value);
-  formData.append("password", password.value);
-
-  return formData;
-}
-
-async function getCsrfCookie() {
-  try {
-    await axios.get(
-      import.meta.env.VITE_API_BASE_URL + "/sanctum/csrf-cookie",
-      {
-        withCredentials: true,
-        withXSRFToken: true,
-      }
-    );
-  } catch (e) {
-    console.log(e);
-
-    errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
-    errorDialog.value.visible = true;
-  }
-}
-
-async function sendLoginRequest(formData) {
-  await axios.postForm(import.meta.env.VITE_API_BASE_URL + "/login", formData, {
-    withCredentials: true,
-    withXSRFToken: true,
-  });
-}
-
-function handleFailedLogin(err) {
-  if (err.response.status == 422) {
-    validationErrors.value = err.response.data.errors;
-    validationErrorDialog.value.visible = true;
-  } else if (err.response.status == 401) {
-    errorMessage.value = "No telepon atau passwordmu salah";
-    errorDialog.value.visible = true;
-  } else {
-    errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
-    errorDialog.value.visible = true;
-  }
-}
-
-async function handleGoogleSigninSuccess(response) {
-  isProcessing.value = true;
-
-  const { credential } = response;
-
-  await axios
-    .post(
-      import.meta.env.VITE_API_BASE_URL + "/api/auth/google",
-      {
-        credential: credential,
-      },
-      {
-        withCredentials: true,
-        withXSRFToken: true,
-      }
-    )
-    .then(async (response) => {
-      router.push("/find-roommate");
-    })
-    .catch((e) => {
-      console.log(e);
-
-      if (e.response.status == 422) {
-        validationErrors.value = e.response.data.errors;
-        validationErrorDialog.value.visible = true;
-      } else {
-        errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
-        errorDialog.value.visible = true;
-      }
-    });
-
-  isProcessing.value = false;
-}
-
-function handleGoogleSigninError() {
-  errorMessage.value = "Google Sign-in error, coba lagi nanti";
-  errorDialog.value.visible = true;
-}
-
-function enforcePhoneNumberFormat(e) {
-  let value = e.target.value.replace(/\D/g, "");
-  let formatted = "";
-
-  if (value.length > 0) {
-    formatted += value.substring(0, 4);
-  }
-  if (value.length > 4) {
-    formatted += "-" + value.substring(4, 8);
-  }
-  if (value.length > 8) {
-    formatted += "-" + value.substring(8, 13);
-  }
-
-  phone.value = formatted;
-}
-
-async function redirectIfLoggedIn() {
-  try {
-    await axios.get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
-      withCredentials: true,
-      withXSRFToken: true,
-    });
-    router.push("/find-roommate");
-  } catch (e) {
-    // can't get self's data = not logged in
-  }
-}
-
-onMounted(async () => {
-  isProcessing.value = true;
-  await redirectIfLoggedIn();
-  isProcessing.value = false;
-});
 </script>
 
 <template>
@@ -181,14 +56,12 @@ onMounted(async () => {
       <template #content>
         <form class="form" @submit.prevent="login">
           <div class="field">
-            <label for="phone">Telepon</label>
+            <label for="email">Email</label>
             <InputText
-              id="phone"
-              type="tel"
-              placeholder="telepon"
-              v-model="phone"
-              maxlength="15"
-              @input="enforcePhoneNumberFormat"
+              id="email"
+              type="email"
+              placeholder="email"
+              v-model="email"
               class="w-full"
             />
           </div>
@@ -207,12 +80,6 @@ onMounted(async () => {
 
           <Button label="Login" type="submit" class="w-full mt-3" />
         </form>
-
-        <GoogleSignInButton
-          @success="handleGoogleSigninSuccess"
-          @error="handleGoogleSigninError"
-        >
-        </GoogleSignInButton>
 
         <div class="footer">
           <RouterLink to="/signup" class="signup-link">

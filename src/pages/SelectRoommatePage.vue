@@ -1,49 +1,12 @@
 <script setup>
 import AuthenticatedLayout from "@/layout/AuthenticatedLayout.vue";
 import { useRoommateRecommendationStore } from "@/stores/roommateRecommendationStore";
-import axios from "axios";
 import { ref } from "vue";
-import { useRouter } from "vue-router";
 
-const router = useRouter();
 const isProcessing = ref(false);
 const roommateRecommendationStore = useRoommateRecommendationStore();
 
-const matchingUsers = roommateRecommendationStore.recomendations;
-
-let errorDialog = ref();
-let errorMessage = ref();
-
-async function inviteToChat(customerProfileId) {
-  isProcessing.value = true;
-
-  let formData = new FormData();
-  await axios
-    .post(
-      import.meta.env.VITE_API_BASE_URL +
-        "/api/match/profiles/" +
-        customerProfileId +
-        "/chat",
-      formData,
-      {
-        withCredentials: true,
-        withXSRFToken: true,
-      }
-    )
-    .then((response) => {
-      let chatRoomId = response.data.chat_room_id;
-
-      router.push("/chats/" + chatRoomId);
-    })
-    .catch((error) => {
-      errorMessage.value =
-        "Can't initiate chat with user, please try again later";
-      errorDialog.value.visible = true;
-      console.log(error);
-    });
-
-  isProcessing.value = false;
-}
+const matchingprofiles = roommateRecommendationStore.recommendations;
 </script>
 
 <template>
@@ -52,28 +15,35 @@ async function inviteToChat(customerProfileId) {
       <h1>Rekomendasi Teman Sewa</h1>
     </header>
 
-    <main class="content" v-if="matchingUsers">
-      <Card v-for="user in matchingUsers" :key="user.id" class="user-card">
+    <main class="content" v-if="matchingprofiles">
+      <Card
+        v-for="profile in matchingprofiles"
+        :key="profile.id"
+        class="user-card"
+      >
         <template #content>
-          <img
-            :src="
-              'http://api.bagisewa.com/storage/' +
-              user.customer_profile.profile_photo
-            "
-            alt="profile_photo"
-            class="profile-photo"
-          />
-          <h4>{{ user.customer_profile.full_name }}</h4>
-          <span class="profile-age">{{ user.customer_profile.birthdate }}</span>
+          <h4>{{ profile.name }}</h4>
+          <div>
+            {{ profile.gender }}
+          </div>
+          <div>
+            {{ profile.preferred_location }}
+          </div>
+          <div>
+            {{ profile.budget }}
+          </div>
+          <div>
+            {{ profile.profession }}
+          </div>
+          <div>
+            {{ profile.status }}
+          </div>
           <p>
-            {{ user.customer_profile.gender }},
-            {{ user.customer_profile.bio }}
+            {{ profile.description }}
           </p>
-          <Button
-            class="chat-button"
-            @click="inviteToChat(user.customer_profile_id)"
-            >Chat</Button
-          >
+          <a :href="'https://wa.me/' + profile.phone">
+            <Button class="chat-button">Chat</Button>
+          </a>
         </template>
       </Card>
     </main>

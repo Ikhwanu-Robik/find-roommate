@@ -1,12 +1,10 @@
 <script setup>
 import AuthenticatedLayout from "@/layout/AuthenticatedLayout.vue";
-import axios from "axios";
 import { onMounted, ref } from "vue";
-import { formatDate } from "../utils.js";
+import { supabase } from "../../utils/supabase";
+import { useSessionStore } from "@/stores/sessionStore";
 
 const isProcessing = ref(false);
-const errors = ref();
-const validationErrorDialog = ref();
 const errorDialog = ref();
 const errorMessage = ref();
 
@@ -16,90 +14,75 @@ const markUnsaved = () => {
   isHavingUnsavedChange.value = true;
 };
 
-const handleFileSelection = (event) => {
-  const file = event.files[0];
-  profile_photo.value = file;
-  profile_photo_path.value = URL.createObjectURL(file);
-  markUnsaved();
-};
+const statuses = [
+  { label: "Single", value: "single" },
+  { label: "Menikah", value: "married" },
+];
 
 const genders = [
-  { label: "Male", value: "male" },
-  { label: "Female", value: "female" },
+  { label: "Cowo", value: "male" },
+  { label: "Cewe", value: "female" },
+];
+
+const locations = [
+  { label: "Dekat UNS", value: "near-UNS" },
+  { label: "Dekat UNY", value: "near-UNY" },
+];
+
+const professions = [
+  { label: "Pelajar", value: "student" },
+  { label: "Karyawan", value: "salaryman" },
 ];
 
 let profile = ref(null);
-const profile_photo = ref(null);
-const profile_photo_path = ref(null);
 
-function updateProfile() {
+const updateUserProfile = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({
+        name: profile.value.name,
+        status: profile.value.status,
+        profession: profile.value.profession,
+        gender: profile.value.gender,
+        preferred_location: profile.value.preferred_location,
+        budget: profile.value.budget,
+        phone: profile.value.phone,
+        description: profile.value.description,
+      })
+      .eq("id", profile.value.id);
+
+    if (error) throw error;
+
+    isHavingUnsavedChange.value = false;
+  } catch (error) {
+    errorMessage.value = error;
+    errorDialog.value.visible = true;
+  }
+};
+
+const getUserProfile = async () => {
   isProcessing.value = true;
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", useSessionStore().session.user.id)
+      .single();
 
-  let formData = new FormData();
-  formData.append("full_name", profile.value.full_name);
-  formData.append("gender", profile.value.gender);
-  if (profile.value.birthdate instanceof Date) {
-    formData.append("birthdate", formatDate(profile.value.birthdate));
+    if (error) throw error;
+
+    profile.value = data;
+  } catch (error) {
+    errorMessage.value = error;
+    errorDialog.value.visible = true;
   }
-  formData.append("address", profile.value.address);
-  formData.append("bio", profile.value.bio);
-  if (profile_photo.value != null) {
-    formData.append("profile_photo", profile_photo.value);
-  }
-  // because our backend use PHP which doesn't
-  // support sending data through PUT
-  formData.append("_method", "PUT");
-
-  axios
-    .post(
-      import.meta.env.VITE_API_BASE_URL + "/api/profiles/" + profile.value.id,
-      formData,
-      {
-        withCredentials: true,
-        withXSRFToken: true,
-      }
-    )
-    .then((response) => {
-      isProcessing.value = false;
-      isHavingUnsavedChange.value = false;
-    })
-    .catch((error) => {
-      errorMessage.value = "Can't save changes, please try again later";
-      errorDialog.value.visible = true;
-      if (error.response) {
-        if (error.response.status == 422) {
-          errors.value = error.response.data.errors;
-          validationErrorDialog.value.visible = true;
-        }
-      }
-      console.log(error);
-    });
-}
-
-async function getSelfAndDisplay() {
-  await axios
-    .get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
-      withCredentials: true,
-      withXSRFToken: true,
-    })
-    .then((response) => {
-      profile.value = response.data.user.profile;
-      profile_photo_path.value =
-        import.meta.env.VITE_API_BASE_URL +
-        "/storage/" +
-        profile.value.profile_photo;
-    })
-    .catch((error) => {
-      errorMessage.value = "Gagal mendapatkan data dirimu, coba lagi nanti";
-      errorDialog.value.visible = true;
-
-      console.log(error);
-    });
-}
+  isProcessing.value = false;
+};
 
 onMounted(async () => {
   isProcessing.value = true;
-  await getSelfAndDisplay();
+  await getUserProfile();
   isProcessing.value = false;
 });
 </script>
@@ -120,76 +103,104 @@ onMounted(async () => {
     <main class="content">
       <Card>
         <template #content v-if="profile">
-          <!-- Profile Photo -->
-          <div class="photo-section">
-            <img
-              :src="profile_photo_path"
-              alt="Profile Photo"
-              class="profile-photo"
-            />
+          <div class="field">
+            <label for="full_name">Nama Lengkap</label>
+            <InputText
+              id="full_name"
+              v-model="profile.name"
+              class="w-full"
+              placeholder="nama lengkap"
+              @input="markUnsaved"
+            >
+            </InputText>
+          </div>
 
-            <FileUpload
-              mode="basic"
-              accept="image/*"
-              chooseLabel="Ganti Foto Profil"
-              customUpload
-              @select="handleFileSelection"
+          <div class="field">
+            <label for="phone">No WhatsApp</label>
+            <InputText
+              id="phone"
+              v-model="profile.phone"
+              class="w-full"
+              placeholder="62812xxxxxxx"
+            >
+            </InputText>
+          </div>
+
+          <div class="field">
+            <label for="sta tus">Status</label>
+            <Select
+              id="status"
+              v-model="profile.status"
+              :options="statuses"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="menikah/single"
+              class="w-full"
+              @change="markUnsaved"
             />
           </div>
 
-          <!-- Form -->
-          <div class="form">
-            <div class="field">
-              <label>Full Name</label>
-              <InputText
-                v-model="profile.full_name"
-                class="w-full"
-                @input="markUnsaved"
-              />
-            </div>
+          <div class="field">
+            <label for="gender">Gender</label>
+            <Select
+              id="gender"
+              v-model="profile.gender"
+              :options="genders"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Pilih gender"
+              class="w-full"
+              @change="markUnsaved"
+            />
+          </div>
 
-            <div class="field">
-              <label>Gender</label>
-              <Select
-                v-model="profile.gender"
-                :options="genders"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Pilih gender"
-                class="w-full"
-                @change="markUnsaved"
-              />
-            </div>
+          <div class="field">
+            <label for="profession">Profesi</label>
+            <Select
+              id="profession"
+              v-model="profile.profession"
+              :options="professions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Pilih profesi"
+              class="w-full"
+              @change="markUnsaved"
+            />
+          </div>
 
-            <div class="field">
-              <label>Birthdate</label>
-              <DatePicker
-                v-model="profile.birthdate"
-                dateFormat="yy-mm-dd"
-                showIcon
-                class="w-full"
-                @update:modelValue="markUnsaved"
-              />
-            </div>
+          <div class="field">
+            <label>Lokasi</label>
+            <Select
+              v-model="profile.preferred_location"
+              :options="locations"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Pilih lokasi"
+              class="w-full"
+              @change="markUnsaved"
+            />
+          </div>
 
-            <div class="field">
-              <label>Address</label>
-              <InputText
-                v-model="profile.address"
-                class="w-full"
-                @input="markUnsaved"
-              />
-            </div>
+          <div class="field">
+            <label>Budget</label>
+            <InputNumber
+              v-model="profile.budget"
+              placeholder="Perkiraan budgetmu"
+              class="w-full"
+              @input="markUnsaved"
+            />
+          </div>
 
-            <div class="field">
-              <label>Bio</label>
-              <Textarea
-                v-model="profile.bio"
-                rows="4"
-                class="w-full"
-                @input="markUnsaved"
-              />
-            </div>
+          <div class="field">
+            <label for="description">Deskripsi Singkat</label>
+            <Textarea
+              id="description"
+              v-model="profile.description"
+              rows="4"
+              placeholder="Ceritakan dirimu secara singkat"
+              class="w-full"
+              @input="markUnsaved"
+            />
           </div>
         </template>
       </Card>
@@ -202,7 +213,7 @@ onMounted(async () => {
         icon="pi pi-save"
         class="w-full"
         :disabled="!isHavingUnsavedChange"
-        @click="updateProfile"
+        @click="updateUserProfile"
       />
     </footer>
   </AuthenticatedLayout>

@@ -1,97 +1,87 @@
 <script setup>
-import { formatDate } from "@/utils";
-import axios from "axios";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { supabase } from "../../utils/supabase";
+import { useSessionStore } from "@/stores/sessionStore";
 
 const router = useRouter();
 const errorDialog = ref();
 const errorMessage = ref();
-const validationErrors = ref(null);
-const validationErrorDialog = ref();
 const isProcessing = ref(false);
 
-let full_name = ref("");
-let profile_photo = ref("");
-let profile_photo_path = ref("");
-let gender = ref("male");
-let birthdate = ref("");
-let address = ref("");
-let bio = ref("");
+const statuses = [
+  { label: "Single", value: "single" },
+  { label: "Menikah", value: "married" },
+];
 
 const genders = [
   { label: "Cowo", value: "male" },
   { label: "Cewe", value: "female" },
 ];
 
-function handleFileSelection(event) {
-  const file = event.files[0];
-  profile_photo.value = file;
-  profile_photo_path.value = URL.createObjectURL(file);
-}
+const locations = [
+  { label: "Dekat UNS", value: "near-UNS" },
+  { label: "Dekat UNY", value: "near-UNY" },
+];
+
+const professions = [
+  { label: "Pelajar", value: "student" },
+  { label: "Karyawan", value: "salaryman" },
+];
+
+let full_name = ref();
+let status = ref();
+let profession = ref();
+let gender = ref();
+let location = ref();
+let budget = ref();
+let phone = ref();
 
 async function createProfile() {
   isProcessing.value = true;
 
-  let formData = new FormData();
-  formData.append("full_name", full_name.value);
-  formData.append("gender", gender.value);
-  if (birthdate.value != "") {
-    formData.append("birthdate", formatDate(birthdate.value));
-  }
-  formData.append("address", address.value);
-  formData.append("bio", bio.value);
-  formData.append("profile_photo", profile_photo.value);
-
-  await axios
-    .postForm(
-      import.meta.env.VITE_API_BASE_URL +
-        "/api/v2/users/" +
-        self.value.id +
-        "/profiles",
-      formData,
-      {
-        withCredentials: true,
-        withXSRFToken: true,
-      }
-    )
-    .then((response) => {
-      router.push("/try-find-roommate");
-    })
-    .catch((e) => {
-      console.log(e);
-      if (e.response.status == 422) {
-        validationErrors.value = e.response.data.errors;
-        validationErrorDialog.value.visible = true;
-      } else {
-        errorMessage.value = "Something is wrong, please try again later";
-        errorDialog.value.visible = true;
-      }
+  try {
+    const { error } = await supabase.from("profiles").insert({
+      name: full_name.value,
+      status: status.value,
+      profession: profession.value,
+      gender: gender.value,
+      preferred_location: location.value,
+      budget: budget.value,
+      description: description.value,
+      phone: phone.value,
+      user_id: useSessionStore().session.user.id
     });
+
+    if (error) throw error;
+
+    router.push("/find-roommate");
+  } catch (error) {
+    errorMessage.value = error;
+    errorDialog.value.visible = true;
+  }
 
   isProcessing.value = false;
 }
 
-async function getSelf() {
-  await axios
-    .get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
-      withCredentials: true,
-      withXSRFToken: true,
-    })
-    .then((response) => {
-      self.value = response.data.user;
-    })
-    .catch((error) => {
-      errorMessage.value = "Gagal mendapatkan data dirimu, coba lagi nanti";
-      errorDialog.value.visible = true;
+const ensureHasSession = async () => {
+  try {
+    const { data: {session}, error } = await supabase.auth.getSession();
 
-      console.log(error);
-    });
-}
+    if (error) throw error;
+
+    useSessionStore().set({ session: session });
+  } catch (error) {
+    errorMessage.value = error;
+    errorDialog.value.visible = true;
+
+    router.push("/login");
+  }
+};
 
 onMounted(async () => {
   isProcessing.value = true;
-  await getSelf();
+  await ensureHasSession();
   isProcessing.value = false;
 });
 </script>
@@ -109,27 +99,37 @@ onMounted(async () => {
       <template #content>
         <form class="form" @submit.prevent="createProfile">
           <div class="field">
-            <label for="full_name">Full Name</label>
-            <InputText id="full_name" v-model="full_name" class="w-full">
+            <label for="full_name">Nama Lengkap</label>
+            <InputText
+              id="full_name"
+              v-model="full_name"
+              class="w-full"
+              placeholder="nama lengkap"
+            >
             </InputText>
           </div>
 
           <div class="field">
-            <label>Foto Profil</label>
-            <FileUpload
-              mode="basic"
-              accept="image/*"
-              chooseLabel="Pilih Foto"
-              customUpload
-              @select="handleFileSelection"
+            <label for="phone">No WhatsApp</label>
+            <InputText
+              id="phone"
+              v-model="phone"
               class="w-full"
-            />
+              placeholder="62812xxxxxxx"
+            >
+            </InputText>
+          </div>
 
-            <img
-              v-if="profile_photo_path"
-              :src="profile_photo_path"
-              alt="Preview Foto Profil"
-              class="photo-preview"
+          <div class="field">
+            <label for="sta tus">Status</label>
+            <Select
+              id="status"
+              v-model="status"
+              :options="statuses"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="menikah/single"
+              class="w-full"
             />
           </div>
 
@@ -147,33 +147,46 @@ onMounted(async () => {
           </div>
 
           <div class="field">
-            <label for="birthdate">Ulang Tahun</label>
-            <DatePicker
-              id="birthdate"
-              v-model="birthdate"
-              dateFormat="yy-mm-dd"
-              showIcon
+            <label for="profession">Profesi</label>
+            <Select
+              id="profession"
+              v-model="profession"
+              :options="professions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Pilih profesi"
               class="w-full"
             />
           </div>
 
           <div class="field">
-            <label for="address">Alamat</label>
-            <InputText
-              id="address"
-              placeholder="Jakarta"
-              v-model="address"
+            <label>Lokasi</label>
+            <Select
+              v-model="location"
+              :options="locations"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Pilih lokasi"
               class="w-full"
             />
           </div>
 
           <div class="field">
-            <label for="bio">Bio</label>
+            <label>Budget</label>
+            <InputNumber
+              v-model="budget"
+              placeholder="Perkiraan budgetmu"
+              class="w-full"
+            />
+          </div>
+
+          <div class="field">
+            <label for="description">Deskripsi Singkat</label>
             <Textarea
-              id="bio"
-              v-model="bio"
+              id="description"
+              v-model="description"
               rows="4"
-              placeholder="Tell me about yourself"
+              placeholder="Ceritakan dirimu secara singkat"
               class="w-full"
             />
           </div>

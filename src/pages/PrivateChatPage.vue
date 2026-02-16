@@ -2,7 +2,6 @@
 import axios from "axios";
 import { nextTick, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import echo from "../echo.js";
 import AuthenticatedLayout from "@/layout/AuthenticatedLayout.vue";
 
 const route = useRoute();
@@ -79,17 +78,6 @@ async function sendChat() {
   isProcessing.value = false;
 }
 
-async function getSelf() {
-  await axios
-    .get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
-      withCredentials: true,
-      withXSRFToken: true,
-    })
-    .then((response) => {
-      self.value = response.data.user.profile;
-    });
-}
-
 async function getChats() {
   await axios
     .get(
@@ -113,12 +101,6 @@ async function getChats() {
       errorDialog.value.visible = true;
       console.log(error);
     });
-}
-
-function listenForChats(chatRoomId) {
-  echo.private("ChatRooms." + chatRoomId).listen("NewChat", (e) => {
-    chats.value.push(e);
-  });
 }
 
 let chatScrollPanel = ref();

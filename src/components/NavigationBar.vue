@@ -12,11 +12,6 @@ const logoutDialog = ref(null);
       <span>Cari</span>
     </RouterLink>
 
-    <RouterLink to="/chats" class="nav-item">
-      <i class="pi pi-comments"></i>
-      <span>Chat</span>
-    </RouterLink>
-
     <RouterLink to="/profile" class="nav-item">
       <i class="pi pi-user"></i>
       <span>Profil</span>

@@ -1,23 +1,20 @@
 <script setup>
 import AuthenticatedLayout from "@/layout/AuthenticatedLayout.vue";
 import { useRoommateRecommendationStore } from "@/stores/roommateRecommendationStore";
-import axios from "axios";
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { supabase } from "../../utils/supabase";
+import { useSessionStore } from "@/stores/sessionStore";
 
 const router = useRouter();
 const isProcessing = ref(false);
-const errors = ref();
-const validationErrorDialog = ref();
 
 let errorDialog = ref();
 let errorMessage = ref();
 
-const lodgings = ref();
-
-const ageRanges = [
-  { label: "18 - 24 Tahun", value: "18-24" },
-  { label: "25 - 30 Tahun", value: "25-30" },
+const statuses = [
+  { label: "Single", value: "single" },
+  { label: "Menikah", value: "married" },
 ];
 
 const genders = [
@@ -25,173 +22,126 @@ const genders = [
   { label: "Cewe", value: "female" },
 ];
 
-let gender = ref();
-let age_range = ref();
-let bio = ref();
-let chosen_lodging = ref();
+const locations = [
+  { label: "Dekat UNS", value: "near-UNS" },
+  { label: "Dekat UNY", value: "near-UNY" },
+];
 
-let min_age = computed(() => {
-  if (age_range.value) {
-    return age_range.value.split("-")[0];
-  }
-});
-let max_age = computed(() => {
-  if (age_range.value) {
-    return age_range.value.split("-")[1];
-  }
-});
+const professions = [
+  { label: "Pelajar", value: "student" },
+  { label: "Karyawan", value: "salaryman" },
+];
+
+let status = ref();
+let profession = ref();
+let gender = ref();
+let location = ref();
+let budget = ref();
 
 async function search() {
   isProcessing.value = true;
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("status", status.value)
+      .eq("profession", profession.value)
+      .eq("gender", gender.value)
+      .eq("preferred_location", location.value)
+      .gte("budget", budget.value)
+      .order("budget");
 
-  await axios
-    .get(
-      import.meta.env.VITE_API_BASE_URL + "/api/match/profiles-recommendation",
-      {
-        withCredentials: true,
-        withXSRFToken: true,
-        params: {
-          gender: gender.value,
-          min_age: min_age.value,
-          max_age: max_age.value,
-          bio: bio.value,
-          lodging_id: chosen_lodging.value?.id,
-        },
-      }
-    )
-    .then((response) => {
-      if (response.data.matching_profiles.length) {
-        useRoommateRecommendationStore().recomendations =
-          response.data.matching_profiles;
+    if (error) throw error;
 
-        router.push("/find-roommate/profiles-recommendation");
-      }
-
-      errorMessage.value = "There's no matching profiles for your criteria";
-      errorDialog.value.visible = true;
-    })
-    .catch((e) => {
-      console.log(e);
-
-      if (e.response.status == 422) {
-        errors.value = e.response.data.errors;
-        validationErrorDialog.value.visible = true;
-      } else {
-        errorMessage.value = "Something is wrong, please try again later";
-        errorDialog.value.visible = true;
-      }
-    });
-
+    useRoommateRecommendationStore().set({ recommendations: data });
+    router.push("/find-roommate/profiles-recommendation");
+  } catch (error) {
+    errorMessage.value = error;
+    errorDialog.value.visible = true;
+  }
   isProcessing.value = false;
 }
 
-async function getLodgings() {
-  await axios
-    .get(import.meta.env.VITE_API_BASE_URL + "/api/lodgings", {
-      withCredentials: true,
-      withXSRFToken: true,
-    })
-    .then((response) => {
-      lodgings.value = response.data.lodgings;
-    })
-    .catch((error) => {
-      console.log(error);
-      errorMessage.value = "Gagal mendapatkan data kos-kosan! coba lagi nanti";
-      errorDialog.value.visible = true;
-    });
-}
+const ensureHasSession = async () => {
+  try {
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
 
-async function setMap() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setMapAtCoords(position.coords.latitude, position.coords.longitude);
-      },
-      () => {
-        console.log(
-          "Can't get current position. Using default Latitude and Longitude."
-        );
+    if (error) throw error;
 
-        setMapAtCoords();
-      }
-    );
-  } else {
-    console.log(
-      "Geolocation not supported by this browser. Using default Latitude and Longitude."
-    );
+    useSessionStore().set({ session: session });
+  } catch (error) {
+    errorMessage.value = error;
+    errorDialog.value.visible = true;
 
-    setMapAtCoords();
+    router.push("/login");
   }
-}
+};
 
-function setMapAtCoords(lat = -7.8846, lon = 111.046) {
-  let map = L.map("map").setView([lat, lon], 12);
+const ensureUserHasProfile = async () => {
+  isProcessing.value = true;
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", useSessionStore().session.user.id)
+      .single();
 
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution:
-      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(map);
+    if (error) throw error;
+  } catch (error) {
+    errorMessage.value = error;
+    errorDialog.value.visible = true;
 
-  lodgings.value.forEach((lodging) => {
-    let popup = new L.Popup();
-    popup.setContent(lodging.name);
-
-    L.marker([lodging.latitude, lodging.longitude])
-      .addTo(map)
-      .bindPopup(popup, {
-        autoClose: false,
-        closeButton: false,
-        closeOnClick: false,
-      })
-      .openPopup()
-      .addEventListener("click", (e) => {
-        let { lat, lng } = e.latlng;
-
-        chosen_lodging.value = lodgings.value.find((lodging) => {
-          return lodging.latitude == lat && lodging.longitude == lng;
-        });
-      });
-  });
-
-  map.setView([lat, lon], 12);
-}
+    router.push("/create-profile");
+  }
+  isProcessing.value = false;
+};
 
 onMounted(async () => {
   isProcessing.value = true;
-  await getLodgings();
-  await setMap();
+  await ensureHasSession();
+  await ensureUserHasProfile();
   isProcessing.value = false;
 });
 </script>
 
 <template>
   <AuthenticatedLayout>
-    <!-- Header -->
     <header class="page-header">
       <h1>Cari Teman BagiSewa</h1>
     </header>
 
-    <!-- Content -->
     <main class="content">
       <div class="content-wrapper">
         <Card>
           <template #content>
             <form class="form" @submit.prevent="search">
-              <!-- Age -->
               <div class="field">
-                <label>Usia</label>
+                <label>Status</label>
                 <Select
-                  v-model="age_range"
-                  :options="ageRanges"
+                  v-model="status"
+                  :options="statuses"
                   optionLabel="label"
                   optionValue="value"
-                  placeholder="Pilih usia"
+                  placeholder="Menikah/single"
                   class="w-full"
                 />
               </div>
 
-              <!-- Gender -->
+              <div class="field">
+                <label>Pekerjaan</label>
+                <Select
+                  v-model="profession"
+                  :options="professions"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Pilih pekerjaan"
+                  class="w-full"
+                />
+              </div>
+
               <div class="field">
                 <label>Gender</label>
                 <Select
@@ -199,29 +149,30 @@ onMounted(async () => {
                   :options="genders"
                   optionLabel="label"
                   optionValue="value"
-                  placeholder="Pilih gender"
+                  placeholder="Cowo/cewe"
                   class="w-full"
                 />
               </div>
 
-              <!-- Bio -->
               <div class="field">
-                <label>Deskripsi</label>
-                <Textarea
-                  v-model="bio"
-                  rows="4"
-                  placeholder="Deskripsikan vibes yang kamu cari"
+                <label>Lokasi</label>
+                <Select
+                  v-model="location"
+                  :options="locations"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Pilih lokasi"
                   class="w-full"
                 />
               </div>
 
-              <!-- Map -->
               <div class="field">
-                <label>Kos</label>
-                <span class="chosen-lodging" v-if="chosen_lodging">{{
-                  chosen_lodging.name
-                }}</span>
-                <div id="map"></div>
+                <label>Budget</label>
+                <InputNumber
+                  v-model="budget"
+                  placeholder="Perkiraan budgetmu"
+                  class="w-full"
+                />
               </div>
 
               <Button
@@ -237,7 +188,6 @@ onMounted(async () => {
     </main>
   </AuthenticatedLayout>
 
-  <ValidationErrorDialog ref="validationErrorDialog" :errors="errors" />
   <ErrorDialog ref="errorDialog" :message="errorMessage" />
   <LoadingDialog :visible="isProcessing" />
 </template>

@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 export const useRoommateRecommendationStore = defineStore(
   "roommateRecommendation",
   {
-    state: () => ({ recomendations: [] }),
+    state: () => ({ recommendations: [] }),
     actions: {
       set(state) {
         this.$state = state;

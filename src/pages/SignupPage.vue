@@ -1,168 +1,35 @@
 <script setup>
-import { onMounted, ref } from "vue";
-import axios from "axios";
-import { useRouter } from "vue-router";
+import { ref } from "vue";
+import { supabase } from "../../utils/supabase";
 
-const router = useRouter();
 const isProcessing = ref(false);
 const errorDialog = ref();
 const errorMessage = ref();
-const validationErrors = ref(null);
-const validationErrorDialog = ref();
+const infoDialog = ref();
+const infoMessage = ref();
 
-let name = ref("");
-let phone = ref("");
+let email = ref("");
 let password = ref("");
 
-async function signup() {
+const signup = async () => {
   isProcessing.value = true;
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email: email.value,
+      password: password.value,
+    });
 
-  if (!name.value || !phone.value || !password.value) {
-    errorMessage.value = "Semua kolom harus diisi";
+    if (error) throw error;
+
+    infoMessage.value =
+      "Periksa email dari Supabase Auth untuk menyelesaikan Signup. Halaman ini boleh ditutup.";
+    infoDialog.value.visible = true;
+  } catch (error) {
+    errorMessage.value = error;
     errorDialog.value.visible = true;
-
-    isProcessing.value = false;
-    return;
   }
-  let regexp = /^08[1-9]{1}\d{1}-{1}\d{4}-\d{2,5}$/;
-  if (!regexp.test(phone.value)) {
-    errorMessage.value = "No telepon harus berformat 08xx-xxxx-xxxxx";
-    errorDialog.value.visible = true;
-
-    isProcessing.value = false;
-    return;
-  }
-
-  await axios
-    .post(
-      import.meta.env.VITE_API_BASE_URL + "/api/v2/signup",
-      {
-        name: name.value,
-        phone: phone.value,
-        password: password.value,
-      },
-      {
-        withCredentials: true,
-        withXSRFToken: true,
-      }
-    )
-    .then(async (response) => {
-      await axios
-        .postForm(
-          import.meta.env.VITE_API_BASE_URL + "/login",
-          {
-            phone: phone.value,
-            password: password.value,
-          },
-          {
-            withCredentials: true,
-            withXSRFToken: true,
-          }
-        )
-        .then((response) => {
-          router.push("/create-profile");
-        })
-        .catch((e) => {
-          console.log(e);
-          if (e.response.status == 422) {
-            validationErrors.value = e.response.data.errors;
-            validationErrorDialog.value.visible = true;
-          } else {
-            errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
-            errorDialog.value.visible = true;
-          }
-        });
-    })
-    .catch((e) => {
-      console.log(e);
-
-      if (e.response.status == 422) {
-        validationErrors.value = e.response.data.errors;
-        validationErrorDialog.value.visible = true;
-      } else {
-        errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
-        errorDialog.value.visible = true;
-      }
-    });
-
   isProcessing.value = false;
-}
-
-async function handleGoogleSigninSuccess(response) {
-  isProcessing.value = true;
-
-  const { credential } = response;
-
-  await axios
-    .post(
-      import.meta.env.VITE_API_BASE_URL + "/api/auth/google",
-      {
-        credential: credential,
-      },
-      {
-        withCredentials: true,
-        withXSRFToken: true,
-      }
-    )
-    .then(async (response) => {
-      router.push("/create-profile");
-    })
-    .catch((e) => {
-      console.log(e);
-
-      if (e.response.status == 422) {
-        validationErrors.value = e.response.data.errors;
-        validationErrorDialog.value.visible = true;
-      } else {
-        errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
-        errorDialog.value.visible = true;
-      }
-    });
-
-  isProcessing.value = false;
-}
-
-function handleGoogleSigninError() {
-  errorMessage.value = "Google Sign-in error, coba lagi nanti";
-  errorDialog.value.visible = true;
-}
-
-function enforcePhoneNumberFormat(e) {
-  let value = e.target.value.replace(/\D/g, "");
-  let formatted = "";
-
-  if (value.length > 0) {
-    formatted += value.substring(0, 4);
-  }
-  if (value.length > 4) {
-    formatted += "-" + value.substring(4, 8);
-  }
-  if (value.length > 8) {
-    formatted += "-" + value.substring(8, 13);
-  }
-
-  phone.value = formatted;
-}
-
-async function redirectIfLoggedIn() {
-  await axios
-    .get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
-      withCredentials: true,
-      withXSRFToken: true,
-    })
-    .then((response) => {
-      router.push("/find-roommate");
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-}
-
-onMounted(async () => {
-  isProcessing.value = true;
-  await redirectIfLoggedIn();
-  isProcessing.value = false;
-});
+};
 </script>
 
 <template>
@@ -178,25 +45,13 @@ onMounted(async () => {
       <template #content>
         <form class="form" @submit.prevent="signup">
           <div class="field">
-            <label for="name">Username</label>
+            <label for="email">Email</label>
             <InputText
-              id="name"
-              placeholder="username"
-              v-model="name"
+              id="email"
+              type="email"
+              placeholder="email"
+              v-model="email"
               class="w-full"
-            />
-          </div>
-
-          <div class="field">
-            <label for="phone">Telepon</label>
-            <InputText
-              id="phone"
-              type="tel"
-              placeholder="telepon"
-              v-model="phone"
-              class="w-full"
-              maxlength="15"
-              @input="enforcePhoneNumberFormat"
             />
           </div>
 
@@ -213,11 +68,6 @@ onMounted(async () => {
           </div>
           <Button label="Signup" type="submit" class="w-full mt-3" />
         </form>
-        <GoogleSignInButton
-          @success="handleGoogleSigninSuccess"
-          @error="handleGoogleSigninError"
-        >
-        </GoogleSignInButton>
       </template>
     </Card>
   </div>
@@ -228,6 +78,7 @@ onMounted(async () => {
   />
   <LoadingDialog :visible="isProcessing" />
   <ErrorDialog ref="errorDialog" :message="errorMessage" />
+  <InfoDialog ref="infoDialog" :message="infoMessage" />
 </template>
 
 <style scoped>

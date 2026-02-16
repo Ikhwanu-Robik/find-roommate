@@ -1,8 +1,8 @@
 <script setup>
-import axios from "axios";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import LoadingDialog from "./LoadingDialog.vue";
+import { supabase } from "../../utils/supabase";
 
 const visible = ref(false);
 const router = useRouter();
@@ -11,18 +11,18 @@ const isProcessing = ref();
 const confirmLogout = async () => {
   isProcessing.value = true;
 
-  await axios.post(
-    import.meta.env.VITE_API_BASE_URL + "/logout",
-    {},
-    {
-      withCredentials: true,
-      withXSRFToken: true,
-    }
-  );
+  try {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) throw error;
+
+    visible.value = false;
+    router.push("/");
+  } catch (error) {
+    alert(error);
+  }
 
   isProcessing.value = false;
-  visible.value = false;
-  router.push("/");
 };
 
 defineExpose({
