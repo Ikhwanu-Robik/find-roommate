@@ -69,6 +69,7 @@ const ensureHasSession = async () => {
     const { data: {session}, error } = await supabase.auth.getSession();
 
     if (error) throw error;
+    if (!session) router.push("/login");
 
     useSessionStore().set({ session: session });
   } catch (error) {
