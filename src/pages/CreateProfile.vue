@@ -176,7 +176,7 @@ onMounted(async () => {
           </div>
 
           <div class="field">
-            <label>Lokasi</label>
+            <label>Lokasi Kos</label>
             <Select
               v-model="location"
               :options="locations"

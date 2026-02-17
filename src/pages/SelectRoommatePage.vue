@@ -30,7 +30,7 @@ const matchingprofiles = roommateRecommendationStore.recommendations;
             {{ profile.preferred_location }}
           </div>
           <div>
-            {{ profile.budget }}
+            Budget: {{ profile.budget }}
           </div>
           <div>
             {{ profile.profession }}

@@ -35,6 +35,8 @@ let gender = ref();
 let location = ref();
 let budget = ref();
 
+const profile = ref();
+
 async function search() {
   isProcessing.value = true;
   try {
@@ -50,7 +52,13 @@ async function search() {
 
     if (error) throw error;
 
-    useRoommateRecommendationStore().set({ recommendations: data });
+    const dataNoUserProfile = data.filter((profileRec) => {
+      if (profileRec.id !== profile.value.id) {
+        return profileRec;
+      }
+    });
+
+    useRoommateRecommendationStore().set({ recommendations: dataNoUserProfile });
     router.push("/find-roommate/profiles-recommendation");
   } catch (error) {
     errorMessage.value = error;
@@ -88,6 +96,8 @@ const ensureUserHasProfile = async () => {
       .single();
 
     if (error) throw error;
+
+    profile.value = data;
   } catch (error) {
     errorMessage.value = error;
     errorDialog.value.visible = true;
@@ -100,9 +110,7 @@ const ensureUserHasProfile = async () => {
 const getLocations = async () => {
   isProcessing.value = true;
   try {
-    const { data, error } = await supabase
-      .from("locations")
-      .select("*");
+    const { data, error } = await supabase.from("locations").select("*");
 
     if (error) throw error;
 
@@ -171,7 +179,7 @@ onMounted(async () => {
               </div>
 
               <div class="field">
-                <label>Lokasi</label>
+                <label>Lokasi Kos</label>
                 <Select
                   v-model="location"
                   :options="locations"
