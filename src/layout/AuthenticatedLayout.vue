@@ -15,6 +15,7 @@ const { shouldDisplayNav = true } = defineProps({ shouldDisplayNav: Boolean });
 <style scoped>
 .page {
   min-height: 100vh;
+  min-height: 100svh;
   background: var(--surface-ground);
   display: flex;
   flex-direction: column;
