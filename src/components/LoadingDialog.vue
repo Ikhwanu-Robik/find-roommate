@@ -3,7 +3,7 @@ import { ref } from 'vue';
 
 let visible = ref(false);
 
-defineExpose([visible]);
+defineExpose({ visible });
 </script>
 
 <template>

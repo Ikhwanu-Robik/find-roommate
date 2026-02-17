@@ -90,11 +90,6 @@ async function login() {
     </Card>
   </div>
 
-  <ValidationErrorDialog
-    ref="validationErrorDialog"
-    :errors="validationErrors"
-  />
-
   <ErrorDialog ref="errorDialog" :message="errorMessage" />
   <LoadingDialog :visible="isProcessing" />
 </template>

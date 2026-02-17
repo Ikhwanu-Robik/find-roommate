@@ -72,10 +72,6 @@ const signup = async () => {
     </Card>
   </div>
 
-  <ValidationErrorDialog
-    ref="validationErrorDialog"
-    :errors="validationErrors"
-  />
   <LoadingDialog :visible="isProcessing" />
   <ErrorDialog ref="errorDialog" :message="errorMessage" />
   <InfoDialog ref="infoDialog" :message="infoMessage" />
