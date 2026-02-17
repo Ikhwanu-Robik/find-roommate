@@ -16,22 +16,19 @@ const markUnsaved = () => {
 
 const statuses = [
   { label: "Single", value: "single" },
-  { label: "Menikah", value: "married" },
+  { label: "Married", value: "married" },
 ];
 
 const genders = [
-  { label: "Cowo", value: "male" },
-  { label: "Cewe", value: "female" },
+  { label: "Cowo", value: "cowo" },
+  { label: "Cewe", value: "cewe" },
 ];
 
-const locations = [
-  { label: "Dekat UNS", value: "near-UNS" },
-  { label: "Dekat UNY", value: "near-UNY" },
-];
+const locations = ref([]);
 
 const professions = [
-  { label: "Pelajar", value: "student" },
-  { label: "Karyawan", value: "salaryman" },
+  { label: "Pelajar", value: "pelajar" },
+  { label: "Karyawan", value: "karyawan" },
 ];
 
 let profile = ref(null);
@@ -80,9 +77,27 @@ const getUserProfile = async () => {
   isProcessing.value = false;
 };
 
+const getLocations = async () => {
+  isProcessing.value = true;
+  try {
+    const { data, error } = await supabase
+      .from("locations")
+      .select("*");
+
+    if (error) throw error;
+
+    locations.value = data;
+  } catch (error) {
+    errorMessage.value = error;
+    errorDialog.value.visible = true;
+  }
+  isProcessing.value = false;
+};
+
 onMounted(async () => {
   isProcessing.value = true;
   await getUserProfile();
+  await getLocations();
   isProcessing.value = false;
 });
 </script>
@@ -173,8 +188,8 @@ onMounted(async () => {
             <Select
               v-model="profile.preferred_location"
               :options="locations"
-              optionLabel="label"
-              optionValue="value"
+              optionLabel="name"
+              optionValue="name"
               placeholder="Pilih lokasi"
               class="w-full"
               @change="markUnsaved"
