@@ -39,6 +39,20 @@ const profile = ref();
 
 async function search() {
   isProcessing.value = true;
+
+  if (
+    !status.value ||
+    !gender.value ||
+    !location.value ||
+    !budget.value ||
+    !profession.value
+  ) {
+    errorMessage.value = "Semua kolom harus diisi";
+    errorDialog.value.visible = true;
+    isProcessing.value = false;
+    return;
+  }
+
   try {
     const { data, error } = await supabase
       .from("profiles")

@@ -13,6 +13,17 @@ let password = ref("");
 
 const signup = async () => {
   isProcessing.value = true;
+
+  if (
+    !password.value ||
+    !email.value
+  ) {
+    errorMessage.value = "Semua kolom harus diisi";
+    errorDialog.value.visible = true;
+    isProcessing.value = false;
+    return;
+  }
+
   try {
     const { data, error } = await supabase.auth.signUp({
       email: email.value,

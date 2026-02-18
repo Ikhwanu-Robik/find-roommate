@@ -33,9 +33,34 @@ let gender = ref();
 let location = ref();
 let budget = ref();
 let phone = ref();
+let description = ref();
 
 async function createProfile() {
   isProcessing.value = true;
+
+  if (
+    !full_name.value ||
+    !status.value ||
+    !profession.value ||
+    !gender.value ||
+    !preferred_location.value ||
+    !budget.value ||
+    !description.value ||
+    !phone.value
+  ) {
+    errorMessage.value = "Semua kolom harus diisi";
+    errorDialog.value.visible = true;
+    isProcessing.value = false;
+    return;
+  }
+
+  let regexp = new RegExp(/^628[1-9]{2}\d{10}$/);
+  if (!regexp.test(phone.value)) {
+    errorMessage.value = "Format nomor ponsel salah";
+    errorDialog.value.visible = true;
+    isProcessing.value = false;
+    return;
+  }
 
   try {
     const { error } = await supabase.from("profiles").insert({
@@ -47,7 +72,7 @@ async function createProfile() {
       budget: budget.value,
       description: description.value,
       phone: phone.value,
-      user_id: useSessionStore().session.user.id
+      user_id: useSessionStore().session.user.id,
     });
 
     if (error) throw error;
@@ -63,7 +88,10 @@ async function createProfile() {
 
 const ensureHasSession = async () => {
   try {
-    const { data: {session}, error } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
 
     if (error) throw error;
     if (!session) router.push("/login");
@@ -80,9 +108,7 @@ const ensureHasSession = async () => {
 const getLocations = async () => {
   isProcessing.value = true;
   try {
-    const { data, error } = await supabase
-      .from("locations")
-      .select("*");
+    const { data, error } = await supabase.from("locations").select("*");
 
     if (error) throw error;
 

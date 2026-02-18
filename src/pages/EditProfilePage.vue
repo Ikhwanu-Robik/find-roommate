@@ -34,6 +34,30 @@ const professions = [
 let profile = ref(null);
 
 const updateUserProfile = async () => {
+  if (
+    !profile.value.full_name ||
+    !profile.value.status ||
+    !profile.value.profession ||
+    !profile.value.gender ||
+    !profile.value.preferred_location ||
+    !profile.value.budget ||
+    !profile.value.description ||
+    !profile.value.phone
+  ) {
+    errorMessage.value = "Semua kolom harus diisi";
+    errorDialog.value.visible = true;
+    isProcessing.value = false;
+    return;
+  }
+
+  let regexp = new RegExp(/^628[1-9]{2}\d{10}$/);
+  if (!regexp.test(profile.value.phone)) {
+    errorMessage.value = "Format nomor ponsel salah";
+    errorDialog.value.visible = true;
+    isProcessing.value = false;
+    return;
+  }
+
   try {
     const { data, error } = await supabase
       .from("profiles")

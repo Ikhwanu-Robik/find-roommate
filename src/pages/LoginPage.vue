@@ -14,6 +14,16 @@ const password = ref("");
 async function login() {
   isProcessing.value = true;
 
+  if (
+    !password.value ||
+    !email.value
+  ) {
+    errorMessage.value = "Semua kolom harus diisi";
+    errorDialog.value.visible = true;
+    isProcessing.value = false;
+    return;
+  }
+
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email.value,
