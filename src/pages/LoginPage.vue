@@ -59,7 +59,7 @@ async function login() {
       <template #title>
         <div class="header">
           <h4 class="subtitle">Login</h4>
-          <h1 class="brand">BagiSewa</h1>
+          <h1 class="brand">Aligned Living</h1>
         </div>
       </template>
 

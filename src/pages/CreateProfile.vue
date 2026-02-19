@@ -133,26 +133,26 @@ onMounted(async () => {
     <Card class="signup-card">
       <template #title>
         <div class="header">
-          <h4 class="subtitle">Mari langung cari teman! Pertama-tama</h4>
-          <h1 class="brand">Lengkapi Profile-mu</h1>
+          <h4 class="subtitle">Let's find your roommate! But first,</h4>
+          <h1 class="brand">Complete your profile</h1>
         </div>
       </template>
 
       <template #content>
         <form class="form" @submit.prevent="createProfile">
           <div class="field">
-            <label for="full_name">Nama Lengkap</label>
+            <label for="full_name">Name</label>
             <InputText
               id="full_name"
               v-model="full_name"
               class="w-full"
-              placeholder="nama lengkap"
+              placeholder="name"
             >
             </InputText>
           </div>
 
           <div class="field">
-            <label for="phone">No WhatsApp</label>
+            <label for="phone">Phone number</label>
             <InputText
               id="phone"
               v-model="phone"
@@ -170,7 +170,7 @@ onMounted(async () => {
               :options="statuses"
               optionLabel="label"
               optionValue="value"
-              placeholder="menikah/single"
+              placeholder="married/single"
               class="w-full"
             />
           </div>
@@ -183,32 +183,32 @@ onMounted(async () => {
               :options="genders"
               optionLabel="label"
               optionValue="value"
-              placeholder="Pilih gender"
+              placeholder="male/female"
               class="w-full"
             />
           </div>
 
           <div class="field">
-            <label for="profession">Profesi</label>
+            <label for="profession">Profession</label>
             <Select
               id="profession"
               v-model="profession"
               :options="professions"
               optionLabel="label"
               optionValue="value"
-              placeholder="Pilih profesi"
+              placeholder="what do you do?"
               class="w-full"
             />
           </div>
 
           <div class="field">
-            <label>Lokasi Kos</label>
+            <label>Target Apartment/Kos Location</label>
             <Select
               v-model="location"
               :options="locations"
               optionLabel="name"
               optionValue="name"
-              placeholder="Pilih lokasi"
+              placeholder="choose location"
               class="w-full"
             />
           </div>
@@ -217,18 +217,18 @@ onMounted(async () => {
             <label>Budget</label>
             <InputNumber
               v-model="budget"
-              placeholder="Perkiraan budgetmu"
+              placeholder="budget estimate"
               class="w-full"
             />
           </div>
 
           <div class="field">
-            <label for="description">Deskripsi Singkat</label>
+            <label for="description">Bio</label>
             <Textarea
               id="description"
               v-model="description"
               rows="4"
-              placeholder="Ceritakan dirimu secara singkat"
+              placeholder="Tell your story"
               class="w-full"
             />
           </div>

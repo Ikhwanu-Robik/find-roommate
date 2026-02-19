@@ -49,7 +49,7 @@ const signup = async () => {
       <template #title>
         <div class="header">
           <h4 class="subtitle">Signup</h4>
-          <h1 class="brand">BagiSewa</h1>
+          <h1 class="brand">Aligned Living</h1>
         </div>
       </template>
 
@@ -89,56 +89,125 @@ const signup = async () => {
 </template>
 
 <style scoped>
+/* =========================
+   Signup Page Layout
+========================= */
+
 .signup-page {
   min-height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 1rem;
+  align-items: center;
   background: var(--surface-ground);
+  padding: 2rem;
 }
+
+/* =========================
+   Card Styling
+========================= */
 
 .signup-card {
   width: 100%;
   max-width: 420px;
+  border-radius: 12px;
 }
+
+/* soften PrimeVue card slightly */
+.signup-card .p-card-title {
+  padding-bottom: 0;
+}
+
+.signup-card .p-card-content {
+  padding-top: 1rem;
+}
+
+/* =========================
+   Header Section
+========================= */
 
 .header {
   text-align: center;
+  margin-bottom: 1rem;
 }
 
 .subtitle {
-  margin: 0;
+  font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-color-secondary);
+  margin: 0;
 }
 
 .brand {
-  margin: 0;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0.25rem 0 0 0;
+  letter-spacing: -0.3px;
 }
+
+/* =========================
+   Form
+========================= */
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.4rem;
 }
 
-label {
-  font-size: 0.875rem;
+.field label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+/* =========================
+   Input Refinement (Non-destructive)
+========================= */
+
+.p-inputtext,
+.p-password input {
+  border-radius: 8px;
+}
+
+/* subtle focus refinement */
+.p-inputtext:focus,
+.p-password input:focus {
+  box-shadow: 0 0 0 2px var(--primary-color)20;
+}
+
+/* =========================
+   Button
+========================= */
+
+.p-button {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.p-button:hover {
+  transform: translateY(-1px);
+  transition: transform 0.15s ease;
+}
+
+/* =========================
+   Optional subtle footer text (if you add it later)
+========================= */
+
+.signup-helper {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
   color: var(--text-color-secondary);
 }
 
-.photo-preview {
-  margin-top: 0.5rem;
-  width: 100%;
-  max-width: 200px;
-  border-radius: 0.75rem;
+.signup-helper a {
+  color: var(--primary-color);
 }
 </style>

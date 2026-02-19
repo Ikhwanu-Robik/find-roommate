@@ -148,7 +148,7 @@ onMounted(async () => {
 <template>
   <AuthenticatedLayout>
     <header class="page-header">
-      <h1>Cari Teman BagiSewa</h1>
+      <h1>Find A Roommate</h1>
     </header>
 
     <main class="content">
@@ -163,19 +163,19 @@ onMounted(async () => {
                   :options="statuses"
                   optionLabel="label"
                   optionValue="value"
-                  placeholder="Menikah/single"
+                  placeholder="married/single"
                   class="w-full"
                 />
               </div>
 
               <div class="field">
-                <label>Pekerjaan</label>
+                <label>Profession</label>
                 <Select
                   v-model="profession"
                   :options="professions"
                   optionLabel="label"
                   optionValue="value"
-                  placeholder="Pilih pekerjaan"
+                  placeholder="your ideal roommate's profession"
                   class="w-full"
                 />
               </div>
@@ -193,13 +193,13 @@ onMounted(async () => {
               </div>
 
               <div class="field">
-                <label>Lokasi Kos</label>
+                <label>Target Apartment/Kos Location</label>
                 <Select
                   v-model="location"
                   :options="locations"
                   optionLabel="name"
                   optionValue="name"
-                  placeholder="Pilih lokasi"
+                  placeholder="Choose location"
                   class="w-full"
                 />
               </div>
@@ -208,13 +208,13 @@ onMounted(async () => {
                 <label>Budget</label>
                 <InputNumber
                   v-model="budget"
-                  placeholder="Perkiraan budgetmu"
+                  placeholder="budget estimate"
                   class="w-full"
                 />
               </div>
 
               <Button
-                label="Cari"
+                label="Find"
                 icon="pi pi-search"
                 class="w-full mt-2"
                 type="submit"

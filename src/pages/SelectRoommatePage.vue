@@ -12,7 +12,7 @@ const matchingprofiles = roommateRecommendationStore.recommendations;
 <template>
   <AuthenticatedLayout>
     <header class="page-header">
-      <h1>Rekomendasi Teman Sewa</h1>
+      <h1>Roommate Recommendations</h1>
     </header>
 
     <main class="content" v-if="matchingprofiles">
@@ -30,7 +30,7 @@ const matchingprofiles = roommateRecommendationStore.recommendations;
             {{ profile.preferred_location }}
           </div>
           <div>
-            Budget: {{ profile.budget }}
+            Budget: IDR {{ profile.budget }}
           </div>
           <div>
             {{ profile.profession }}

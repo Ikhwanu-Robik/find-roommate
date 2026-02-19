@@ -130,7 +130,7 @@ onMounted(async () => {
   <AuthenticatedLayout>
     <!-- Header -->
     <header class="page-header">
-      <h1>Profil</h1>
+      <h1>Profile</h1>
       <Tag
         v-if="isHavingUnsavedChange"
         severity="warn"
@@ -143,7 +143,7 @@ onMounted(async () => {
       <Card>
         <template #content v-if="profile">
           <div class="field">
-            <label for="full_name">Nama Lengkap</label>
+            <label for="full_name">Name</label>
             <InputText
               id="full_name"
               v-model="profile.name"
@@ -155,7 +155,7 @@ onMounted(async () => {
           </div>
 
           <div class="field">
-            <label for="phone">No WhatsApp</label>
+            <label for="phone">Phone Number</label>
             <InputText
               id="phone"
               v-model="profile.phone"
@@ -173,7 +173,7 @@ onMounted(async () => {
               :options="statuses"
               optionLabel="label"
               optionValue="value"
-              placeholder="menikah/single"
+              placeholder="married/single"
               class="w-full"
               @change="markUnsaved"
             />
@@ -187,34 +187,34 @@ onMounted(async () => {
               :options="genders"
               optionLabel="label"
               optionValue="value"
-              placeholder="Pilih gender"
+              placeholder="male/female"
               class="w-full"
               @change="markUnsaved"
             />
           </div>
 
           <div class="field">
-            <label for="profession">Profesi</label>
+            <label for="profession">Profession</label>
             <Select
               id="profession"
               v-model="profile.profession"
               :options="professions"
               optionLabel="label"
               optionValue="value"
-              placeholder="Pilih profesi"
+              placeholder="what do you do?"
               class="w-full"
               @change="markUnsaved"
             />
           </div>
 
           <div class="field">
-            <label>Lokasi Kos</label>
+            <label>Target Aparment/Kos Location</label>
             <Select
               v-model="profile.preferred_location"
               :options="locations"
               optionLabel="name"
               optionValue="name"
-              placeholder="Pilih lokasi"
+              placeholder="choose location"
               class="w-full"
               @change="markUnsaved"
             />
@@ -224,19 +224,19 @@ onMounted(async () => {
             <label>Budget</label>
             <InputNumber
               v-model="profile.budget"
-              placeholder="Perkiraan budgetmu"
+              placeholder="budget estimate"
               class="w-full"
               @input="markUnsaved"
             />
           </div>
 
           <div class="field">
-            <label for="description">Deskripsi Singkat</label>
+            <label for="description">Bio</label>
             <Textarea
               id="description"
               v-model="profile.description"
               rows="4"
-              placeholder="Ceritakan dirimu secara singkat"
+              placeholder="tell your story"
               class="w-full"
               @input="markUnsaved"
             />
