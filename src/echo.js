@@ -8,7 +8,7 @@ const pusher = Pusher;
 const echo = new Echo({
   broadcaster: "reverb",
   key: "ftqnzv5m2afcgjtfwe6f",
-  wsHost: "api.find-roommate.test",
+  wsHost: import.meta.env.VITE_WS_HOST,
   wsPort: 8080,
   wssPort: 8080,
   forceTLS: false,

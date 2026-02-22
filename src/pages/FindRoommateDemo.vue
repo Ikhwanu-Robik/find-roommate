@@ -6,14 +6,6 @@ import axios from "axios";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
-// TODO: one page one input
-// page 1 - input age range
-// page 2 - input gender
-// page 3 - input bio
-// page 4 - select lodging
-
-// TODO: scroll to top after being redirected here
-
 const router = useRouter();
 const isProcessing = ref(false);
 const errors = ref();
@@ -49,6 +41,44 @@ let max_age = computed(() => {
     return age_range.value.split("-")[1];
   }
 });
+
+
+async function joinListingAndGetRecommendations() {
+  isProcessing.value = true;
+  let joinedListing = await joinListing();
+  if (joinedListing) {
+    await search();
+    return;
+  }
+  isProcessing.value = false;
+}
+
+async function joinListing() {
+  isProcessing.value = true;
+
+  try {
+    let response = await axios.post(
+      import.meta.env.VITE_API_BASE_URL + "/api/listing",
+      {
+        lodging_id: chosen_lodging.value?.id,
+      },
+      {
+        withCredentials: true,
+        withXSRFToken: true,
+      }
+    );
+
+    if (response.status != 200) throw new Error(response.statusText);
+    isProcessing.value = false;
+    return true;
+  } catch (error) {
+    console.log(error);
+    errorMessage.value = error;
+    errorDialog.value.visible = true;
+    isProcessing.value = false;
+    return false;
+  }
+}
 
 async function search() {
   isProcessing.value = true;
@@ -185,7 +215,7 @@ onMounted(async () => {
         </template>
 
         <template #content>
-          <form class="form" @submit.prevent="search">
+          <form class="form" @submit.prevent="joinListingAndGetRecommendations">
             <!-- Age -->
             <div class="field">
               <label>Usia</label>
@@ -226,8 +256,10 @@ onMounted(async () => {
             <!-- Map -->
             <div class="field">
               <label>Kos</label>
-              <span class="chosen-lodging" v-if="chosen_lodging">{{
-                chosen_lodging.name
+              <span class="chosen-lodging">{{
+                chosen_lodging
+                  ? chosen_lodging.name
+                  : "Pilih kos tujuan di map ini"
               }}</span>
               <div id="map"></div>
             </div>
@@ -239,6 +271,7 @@ onMounted(async () => {
               type="submit"
             />
           </form>
+          <RouterLink to="/find-roommate">Skip</RouterLink>
         </template>
       </Card>
     </div>

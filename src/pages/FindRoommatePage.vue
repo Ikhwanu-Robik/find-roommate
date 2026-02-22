@@ -41,6 +41,43 @@ let max_age = computed(() => {
   }
 });
 
+async function joinListingAndGetRecommendations() {
+  isProcessing.value = true;
+  let joinedListing = await joinListing();
+  if (joinedListing) {
+    await search();
+    return;
+  }
+  isProcessing.value = false;
+}
+
+async function joinListing() {
+  isProcessing.value = true;
+
+  try {
+    let response = await axios.post(
+      import.meta.env.VITE_API_BASE_URL + "/api/listing",
+      {
+        lodging_id: chosen_lodging.value?.id,
+      },
+      {
+        withCredentials: true,
+        withXSRFToken: true,
+      }
+    );
+
+    if (response.status != 200) throw new Error(response.statusText);
+    isProcessing.value = false;
+    return true;
+  } catch (error) {
+    console.log(error);
+    errorMessage.value = error;
+    errorDialog.value.visible = true;
+    isProcessing.value = false;
+    return false;
+  }
+}
+
 async function search() {
   isProcessing.value = true;
 
@@ -177,7 +214,10 @@ onMounted(async () => {
       <div class="content-wrapper">
         <Card>
           <template #content>
-            <form class="form" @submit.prevent="search">
+            <form
+              class="form"
+              @submit.prevent="joinListingAndGetRecommendations"
+            >
               <!-- Age -->
               <div class="field">
                 <label>Usia</label>
@@ -218,8 +258,10 @@ onMounted(async () => {
               <!-- Map -->
               <div class="field">
                 <label>Kos</label>
-                <span class="chosen-lodging" v-if="chosen_lodging">{{
-                  chosen_lodging.name
+                <span class="chosen-lodging">{{
+                  chosen_lodging
+                    ? chosen_lodging.name
+                    : "Pilih kos tujuan di map ini"
                 }}</span>
                 <div id="map"></div>
               </div>
