@@ -17,7 +17,7 @@ import "primeicons/primeicons.css";
 
 import GoogleSignInPlugin from "vue3-google-signin";
 
-import { createWebHashHistory, createRouter } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import FindRoommatePage from "./pages/FindRoommatePage.vue";
 import SelectRoommatePage from "./pages/SelectRoommatePage.vue";
 import LandingPage from "./pages/LandingPage.vue";
@@ -46,7 +46,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes,
 });
 
