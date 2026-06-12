@@ -2,11 +2,21 @@
   <div class="landing-page">
     <!-- Top App Bar -->
     <header class="topbar">
-      <span class="logo">BagiSewa</span>
+      <div class="links">
+        <RouterLink to="/">
+          <Button class="logo" label="BagiSewa" text />
+        </RouterLink>
+        <RouterLink to="/login">
+          <Button label="What is BagiSewa?" text /> </RouterLink
+        ><RouterLink to="/login"> <Button label="People We Have Helped" text /> </RouterLink
+        ><RouterLink to="/login">
+          <Button label="I'm a Landlord" text />
+        </RouterLink>
+      </div>
 
       <div class="actions">
         <RouterLink to="/login">
-          <Button label="Login" text />
+          <Button label="Login" text class="login-link" />
         </RouterLink>
 
         <RouterLink to="/signup">
@@ -16,41 +26,36 @@
     </header>
 
     <!-- Hero Card -->
-    <Card class="landing-card">
-      <template #content>
-        <section class="hero">
-          <!-- Illustration -->
-          <img
-            src="../illustrations/roommate.png"
-            alt="Find roommate"
-            class="illustration"
-          />
-
+    <section class="hero">
+      <!-- Illustration -->
+      <div class="left">
+        <div class="header">
           <h4 class="subtitle">cari teman untuk</h4>
           <h1 class="brand">BagiSewa</h1>
           <h4 class="subtitle">kos dan kontrakan</h4>
-
           <p class="description">
             <i>In this economy</i> siapa sih yang bisa <i>afford</i>
-            kos sama kontrakan sendirian?
+            kos yang bagus sendirian?
           </p>
+        </div>
 
-          <!-- Stats -->
-          <div class="stats">
-            <div class="stat">
-              <strong>50%</strong>
-              <span>lebih hemat</span>
-            </div>
-            <div class="stat">
-              <strong>100+</strong>
-              <span>teman sewa</span>
-            </div>
-            <div class="stat">
-              <strong>Aman</strong>
-              <span>profil terverifikasi</span>
-            </div>
+        <!-- Stats -->
+        <div class="stats">
+          <div class="stat">
+            <strong>50%</strong>
+            <span>lebih hemat</span>
           </div>
+          <div class="stat">
+            <strong>100+</strong>
+            <span>teman sewa</span>
+          </div>
+          <div class="stat">
+            <strong>Aman</strong>
+            <span>profil terverifikasi</span>
+          </div>
+        </div>
 
+        <div class="call-to-actions">
           <!-- CTA -->
           <RouterLink to="/find-roommate">
             <Button
@@ -61,32 +66,50 @@
             />
           </RouterLink>
 
-          <RouterLink to="/signup" class="secondary-cta">
-            Baru di sini? Daftar sekarang
-          </RouterLink>
-        </section>
-      </template>
-    </Card>
+        </div>
+      </div>
+
+      <div class="right">
+        <img
+          src="../../screenshots/triple-screenshots.png"
+          alt="Find roommate"
+          class="illustration"
+        />
+      </div>
+    </section>
   </div>
+
 </template>
 
 <style scoped>
-.landing-page {
+.landing-page { 
   min-height: 100vh;
   background: var(--surface-ground);
+  display: flex;
+  flex-direction: column;
 }
 
 /* Top App Bar */
 .topbar {
+  position: absolute;
+  width: 100svw;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
 }
 
+.links {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  gap: 4rem;
+}
+
 .logo {
   font-weight: 700;
   font-size: 1.1rem;
+  color: white;
 }
 
 .actions {
@@ -94,34 +117,40 @@
   gap: 0.5rem;
 }
 
-/* Card */
-.landing-card {
-  margin: 1rem;
-  text-align: center;
+.login-link {
+  border: 1px solid rgb(57, 57, 57);
 }
 
 /* Hero */
 .hero {
   display: flex;
-  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
   gap: 0.5rem;
+  height: 100svh;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;  
 }
 
 .illustration {
   width: 100%;
-  max-width: 220px;
+  max-width: 600px;
   margin: 0 auto;
 }
 
 .subtitle {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1.5rem;
   color: var(--text-color-secondary);
 }
 
 .brand {
   margin: 0;
-  font-size: 2.2rem;
+  font-size: 5rem;
 }
 
 .description {
@@ -148,10 +177,9 @@
   color: var(--text-color);
 }
 
-/* Secondary CTA */
-.secondary-cta {
-  font-size: 0.85rem;
-  color: var(--primary-color);
-  text-decoration: none;
+.call-to-actions {
+  display: flex;
+  justify-content: start;
+  align-items: center;
 }
 </style>
