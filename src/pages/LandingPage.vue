@@ -6,11 +6,11 @@
         <RouterLink to="/">
           <Button class="logo" label="BagiSewa" text />
         </RouterLink>
-        <RouterLink to="/#what-is-bagisewa">
+        <RouterLink to="/#what-is-bagisewa" class="section-link">
           <Button label="What is BagiSewa?" text /> </RouterLink
-        ><RouterLink to="/#people-we-have-helped">
+        ><RouterLink to="/#people-we-have-helped" class="section-link">
           <Button label="People We Have Helped" text /> </RouterLink
-        ><RouterLink to="/#im-a-landlord">
+        ><RouterLink to="/#im-a-landlord" class="section-link">
           <Button label="I'm a Landlord" text />
         </RouterLink>
       </div>
@@ -110,22 +110,23 @@
       <h2>People We Have Helped</h2>
       <Card class="testimonial-cards">
         <template #content>
-          <div class="testimonial-cards-container to[]">
+          <div class="testimonial-cards-container">
             <Card>
               <template #content>
                 <div class="testimonial">
                   <div class="testimonial-text">
-                    "Dulu nyari teman kos lewat grup Facebook susah banget banyak yang
-                    nggak balas. Lewat aplikasi ini saya dapat roommate dalam 4 hari..
-                    Orangnya juga sesuai dengan preferensi yang saya cari."
+                    "Dulu nyari teman kos lewat grup Facebook susah banget
+                    banyak yang nggak balas. Lewat aplikasi ini saya dapat
+                    roommate dalam 4 hari.. Orangnya juga sesuai dengan
+                    preferensi yang saya cari."
                   </div>
                   <div class="person-star-container">
                     <div class="testimonial-star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
                     </div>
                     <div class="testimonial-person">Andi, Mahasiswa</div>
                   </div>
@@ -136,14 +137,16 @@
               <template #content>
                 <div class="testimonial">
                   <div class="testimonial-text">
-                    "Fitur filternya membantu karena saya bisa cari roommate sesama perempuan dan non-perokok. Semoga ke depannya ada lebih banyak pengguna di kota-kota kecil."
+                    "Fitur filternya membantu karena saya bisa cari roommate
+                    sesama perempuan dan non-perokok. Semoga ke depannya ada
+                    lebih banyak pengguna di kota-kota kecil."
                   </div>
                   <div class="person-star-container">
                     <div class="testimonial-star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
                     </div>
                     <div class="testimonial-person">Siti</div>
                   </div>
@@ -154,14 +157,16 @@
               <template #content>
                 <div class="testimonial">
                   <div class="testimonial-text">
-                    "Sempat ragu karena belum pernah cari roommate secara online, tapi ternyata prosesnya cukup mudah. Sekarang sudah 3 bulan tinggal bareng rommate yang saya temukan di sini."
+                    "Sempat ragu karena belum pernah cari roommate secara
+                    online, tapi ternyata prosesnya cukup mudah. Sekarang sudah
+                    3 bulan tinggal bareng rommate yang saya temukan di sini."
                   </div>
                   <div class="person-star-container">
                     <div class="testimonial-star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
                     </div>
                     <div class="testimonial-person">Dimas</div>
                   </div>
@@ -172,15 +177,17 @@
               <template #content>
                 <div class="testimonial">
                   <div class="testimonial-text">
-                    "UI-nya sederhana dan gampang dipahami. Saya suka karena profil pengguna cukup lengkap jadi bisa tahu kecocokan sebelum chat."
+                    "UI-nya sederhana dan gampang dipahami. Saya suka karena
+                    profil pengguna cukup lengkap jadi bisa tahu kecocokan
+                    sebelum chat."
                   </div>
                   <div class="person-star-container">
                     <div class="testimonial-star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
                     </div>
                     <div class="testimonial-person">Fajar</div>
                   </div>
@@ -191,15 +198,17 @@
               <template #content>
                 <div class="testimonial">
                   <div class="testimonial-text">
-                    "Sebagai mahasiswi perantauan, aplikasi ini sangat membantu. Saya tidak punya banyak kenalan di kota tujuan, jadi fitur pencarian roommate benar-benar berguna."
+                    "Sebagai mahasiswi perantauan, aplikasi ini sangat membantu.
+                    Saya tidak punya banyak kenalan di kota tujuan, jadi fitur
+                    pencarian roommate benar-benar berguna."
                   </div>
                   <div class="person-star-container">
                     <div class="testimonial-star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
-                      <img src="../assets/star-white.svg" alt="star">
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
+                      <img src="../assets/star-white.svg" alt="star" />
                     </div>
                     <div class="testimonial-person">Nabila</div>
                   </div>
@@ -440,5 +449,59 @@
   flex-direction: column;
   gap: 0.5rem;
   width: 100%;
+}
+
+@media screen and (max-width: 700px) {
+  .links .section-link {
+    display: none;
+  }
+
+  .hero {
+    flex-direction: column-reverse;
+    justify-content: center;
+    padding-left: 2rem;
+  }
+
+  .illustration {
+    width: 70%;
+  }
+
+  .brand {
+    font-size: 4rem;
+  }
+
+  .subtitle {
+    font-size: 1.5rem;
+  }
+
+  .what-is-bagisewa {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .what-is-bagisewa .header,
+  .what-is-bagisewa .description {
+    width: 90%;
+  }
+
+  .testimonials-container {
+    height: auto;
+  }
+
+  .testimonial-cards {
+    height: fit-content;
+  }
+
+  .testimonial-cards-container {
+    flex-direction: column;
+  }
+
+  .landlord-form-card {
+    flex-direction: column;
+  }
+
+  .landlord-form-card .welcome-text, .landlord-form-card .form {
+    width: auto;
+  }
 }
 </style>
