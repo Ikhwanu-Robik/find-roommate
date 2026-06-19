@@ -93,45 +93,6 @@ function handleFailedLogin(err) {
   }
 }
 
-async function handleGoogleSigninSuccess(response) {
-  isProcessing.value = true;
-
-  const { credential } = response;
-
-  await axios
-    .post(
-      import.meta.env.VITE_API_BASE_URL + "/api/auth/google",
-      {
-        credential: credential,
-      },
-      {
-        withCredentials: true,
-        withXSRFToken: true,
-      }
-    )
-    .then(async (response) => {
-      router.push("/find-roommate");
-    })
-    .catch((e) => {
-      console.log(e);
-
-      if (e.response.status == 422) {
-        validationErrors.value = e.response.data.errors;
-        validationErrorDialog.value.visible = true;
-      } else {
-        errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
-        errorDialog.value.visible = true;
-      }
-    });
-
-  isProcessing.value = false;
-}
-
-function handleGoogleSigninError() {
-  errorMessage.value = "Google Sign-in error, coba lagi nanti";
-  errorDialog.value.visible = true;
-}
-
 function enforcePhoneNumberFormat(e) {
   let value = e.target.value.replace(/\D/g, "");
   let formatted = "";
@@ -207,12 +168,6 @@ onMounted(async () => {
 
           <Button label="Login" type="submit" class="w-full mt-3" />
         </form>
-
-        <GoogleSignInButton
-          @success="handleGoogleSigninSuccess"
-          @error="handleGoogleSigninError"
-        >
-        </GoogleSignInButton>
 
         <div class="footer">
           <RouterLink to="/signup" class="signup-link">
