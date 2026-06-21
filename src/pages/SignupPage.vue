@@ -33,12 +33,8 @@ async function signup() {
     return;
   }
 
-  await axios.get(import.meta.env.VITE_API_BASE_URL + "/sanctum/csrf-cookie", {
-    withCredentials: true,
-    withXSRFToken: true,
-  }).then(async (response) => {
-    await axios
-    .post(
+  try {
+    await axios.post(
       import.meta.env.VITE_API_BASE_URL + "/api/v2/signup",
       {
         name: name.value,
@@ -49,51 +45,47 @@ async function signup() {
         withCredentials: true,
         withXSRFToken: true,
       }
-    )
-    .then(async (response) => {
-      await axios
-        .postForm(
-          import.meta.env.VITE_API_BASE_URL + "/login",
-          {
-            phone: phone.value,
-            password: password.value,
-          },
-          {
-            withCredentials: true,
-            withXSRFToken: true,
-          }
-        )
-        .then((response) => {
-          router.push("/create-profile");
-        })
-        .catch((e) => {
-          console.log(e);
-          if (e.response.status == 422) {
-            validationErrors.value = e.response.data.errors;
-            validationErrorDialog.value.visible = true;
-          } else {
-            errorMessage.value = e;
-            errorDialog.value.visible = true;
-          }
-        });
-    })
-    .catch((e) => {
-      console.log(e);
-
-      if (e.response.status == 422) {
-        validationErrors.value = e.response.data.errors;
-        validationErrorDialog.value.visible = true;
-      } else {
-        errorMessage.value = e;
-        errorDialog.value.visible = true;
+    );
+    await axios.postForm(
+      import.meta.env.VITE_API_BASE_URL + "/login",
+      {
+        phone: phone.value,
+        password: password.value,
+      },
+      {
+        withCredentials: true,
+        withXSRFToken: true,
       }
-    });
-  }).catch((error) => {
-    errorMessage.value = error;
-    errorDialog.value.visible = true;
-  });
+    );
+    router.push("/create-profile");
+  } catch (e) {
+    if (e.response && e.response.status == 422) {
+      validationErrors.value = e.response.data.errors;
+      validationErrorDialog.value.visible = true;
+    } else {
+      errorMessage.value = e;
+      errorDialog.value.visible = true;
+    }
+  }
 
   isProcessing.value = false;
+}
+
+async function getCsrfCookie() {
+  try {
+    await axios.get(
+      import.meta.env.VITE_API_BASE_URL + "/sanctum/csrf-cookie",
+      {
+        withCredentials: true,
+        withXSRFToken: true,
+      }
+    );
+  } catch (e) {
+    console.log(e);
+
+    errorMessage.value = e;
+    errorDialog.value.visible = true;
+  }
 }
 
 function enforcePhoneNumberFormat(e) {
@@ -123,17 +115,18 @@ async function redirectIfLoggedIn() {
       router.push("/find-roommate");
     })
     .catch((e) => {
-    // it is quite important to check whether e.response exist
-    // becuase errors such as NetworkError do not have any response
-    if (e.response && e.response.status != 401) {
-      errorMessage.value = e;
-      errorDialog.value.visible = true;
-    }
+      // it is quite important to check whether e.response exist
+      // becuase errors such as NetworkError do not have any response
+      if (e.response && e.response.status != 401) {
+        errorMessage.value = e;
+        errorDialog.value.visible = true;
+      }
     });
 }
 
 onMounted(async () => {
   isProcessing.value = true;
+  await getCsrfCookie();
   await redirectIfLoggedIn();
   isProcessing.value = false;
 });

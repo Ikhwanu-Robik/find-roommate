@@ -118,8 +118,10 @@ async function redirectIfLoggedIn() {
     });
     router.push("/find-roommate");
   } catch (e) {
-    errorMessage.value = e;
-    errorDialog.value.visible = true;
+    if (e.response && e.response.status != 401) {
+        errorMessage.value = e;
+        errorDialog.value.visible = true;
+    }
   }
 }
 
