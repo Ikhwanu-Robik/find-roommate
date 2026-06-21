@@ -68,7 +68,7 @@ async function getCsrfCookie() {
   } catch (e) {
     console.log(e);
 
-    errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
+    errorMessage.value = e;
     errorDialog.value.visible = true;
   }
 }
@@ -88,7 +88,7 @@ function handleFailedLogin(err) {
     errorMessage.value = "No telepon atau passwordmu salah";
     errorDialog.value.visible = true;
   } else {
-    errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
+    errorMessage.value = err;
     errorDialog.value.visible = true;
   }
 }
@@ -118,7 +118,8 @@ async function redirectIfLoggedIn() {
     });
     router.push("/find-roommate");
   } catch (e) {
-    // can't get self's data = not logged in
+    errorMessage.value = e;
+    errorDialog.value.visible = true;
   }
 }
 

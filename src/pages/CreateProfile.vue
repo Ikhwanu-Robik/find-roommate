@@ -64,7 +64,7 @@ async function createProfile() {
         validationErrors.value = e.response.data.errors;
         validationErrorDialog.value.visible = true;
       } else {
-        errorMessage.value = "Something is wrong, please try again later";
+        errorMessage.value = e;
         errorDialog.value.visible = true;
       }
     });
@@ -82,7 +82,7 @@ async function getSelf() {
       self.value = response.data.user;
     })
     .catch((error) => {
-      errorMessage.value = "Gagal mendapatkan data dirimu, coba lagi nanti";
+      errorMessage.value = error;
       errorDialog.value.visible = true;
 
       console.log(error);

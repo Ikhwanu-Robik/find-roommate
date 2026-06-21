@@ -37,8 +37,7 @@ async function getPartner() {
       });
     })
     .catch((error) => {
-      errorMessage.value =
-        "Can't get the other user's data. Please try again later";
+      errorMessage.value = error;
       errorDialog.value.visible = true;
       console.log(error);
     });
@@ -69,7 +68,7 @@ async function sendChat() {
     )
     .then((response) => {})
     .catch((error) => {
-      errorMessage.value = "Gagal mengirim pesan, coba lagi nanti";
+      errorMessage.value = error;
       errorDialog.value.visible = true;
 
       console.log(error);
@@ -87,6 +86,9 @@ async function getSelf() {
     })
     .then((response) => {
       self.value = response.data.user.profile;
+    }).catch((error) => {
+      errorMessage.value = error;
+      errorDialog.value.visible = true;
     });
 }
 
@@ -108,8 +110,7 @@ async function getChats() {
       });
     })
     .catch((error) => {
-      errorMessage.value =
-        "Sorry, we can't get your chats, please try again later";
+      errorMessage.value = error;
       errorDialog.value.visible = true;
       console.log(error);
     });

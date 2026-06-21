@@ -22,8 +22,7 @@ async function getAcquintedProfiles() {
     })
     .catch((error) => {
       console.log(error);
-      errorMessage.value =
-        "Can't get your chat history. Please try again later";
+      errorMessage.value = error;
       errorDialog.value.visible = true;
     });
 }
@@ -36,6 +35,9 @@ async function getSelf() {
     })
     .then((response) => {
       self.value = response.data.user.profile;
+    }).catch((error) => {
+      errorMessage.value = error;
+      errorDialog.value.visible = true;
     });
 }
 

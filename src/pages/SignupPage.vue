@@ -72,7 +72,7 @@ async function signup() {
             validationErrors.value = e.response.data.errors;
             validationErrorDialog.value.visible = true;
           } else {
-            errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
+            errorMessage.value = e;
             errorDialog.value.visible = true;
           }
         });
@@ -84,10 +84,14 @@ async function signup() {
         validationErrors.value = e.response.data.errors;
         validationErrorDialog.value.visible = true;
       } else {
-        errorMessage.value = "Terjadi kesalahan, coba lagi nanti";
+        errorMessage.value = e;
         errorDialog.value.visible = true;
       }
     });
+  }).catch((error) => {
+    errorMessage.value = error;
+    errorDialog.value.visible = true;
+  });
 
   isProcessing.value = false;
 }
@@ -118,8 +122,13 @@ async function redirectIfLoggedIn() {
     .then((response) => {
       router.push("/find-roommate");
     })
-    .catch((error) => {
-      console.log(error);
+    .catch((e) => {
+    // it is quite important to check whether e.response exist
+    // becuase errors such as NetworkError do not have any response
+    if (e.response && e.response.status != 401) {
+      errorMessage.value = e;
+      errorDialog.value.visible = true;
+    }
     });
 }
 

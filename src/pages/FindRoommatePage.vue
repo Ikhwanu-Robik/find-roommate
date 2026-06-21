@@ -114,7 +114,7 @@ async function search() {
         errors.value = e.response.data.errors;
         validationErrorDialog.value.visible = true;
       } else {
-        errorMessage.value = "Something is wrong, please try again later";
+        errorMessage.value = e;
         errorDialog.value.visible = true;
       }
     });
@@ -133,7 +133,7 @@ async function getLodgings() {
     })
     .catch((error) => {
       console.log(error);
-      errorMessage.value = "Gagal mendapatkan data kos-kosan! coba lagi nanti";
+      errorMessage.value = error;
       errorDialog.value.visible = true;
     });
 }

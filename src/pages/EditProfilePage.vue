@@ -64,7 +64,7 @@ function updateProfile() {
       isHavingUnsavedChange.value = false;
     })
     .catch((error) => {
-      errorMessage.value = "Can't save changes, please try again later";
+      errorMessage.value = error;
       errorDialog.value.visible = true;
       if (error.response) {
         if (error.response.status == 422) {
@@ -90,7 +90,7 @@ async function getSelfAndDisplay() {
         profile.value.profile_photo;
     })
     .catch((error) => {
-      errorMessage.value = "Gagal mendapatkan data dirimu, coba lagi nanti";
+      errorMessage.value = error;
       errorDialog.value.visible = true;
 
       console.log(error);

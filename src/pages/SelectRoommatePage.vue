@@ -36,10 +36,8 @@ async function inviteToChat(customerProfileId) {
       router.push("/chats/" + chatRoomId);
     })
     .catch((error) => {
-      errorMessage.value =
-        "Can't initiate chat with user, please try again later";
+      errorMessage.value = error;
       errorDialog.value.visible = true;
-      console.log(error);
     });
 
   isProcessing.value = false;
