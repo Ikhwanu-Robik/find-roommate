@@ -33,7 +33,11 @@ async function signup() {
     return;
   }
 
-  await axios
+  await axios.get(import.meta.env.VITE_API_BASE_URL + "/sanctum/csrf-cookie", {
+    withCredentials: true,
+    withXSRFToken: true,
+  }).then(async (response) => {
+    await axios
     .post(
       import.meta.env.VITE_API_BASE_URL + "/api/v2/signup",
       {
