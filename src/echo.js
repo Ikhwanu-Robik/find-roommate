@@ -9,9 +9,9 @@ const echo = new Echo({
   broadcaster: "reverb",
   key: "ftqnzv5m2afcgjtfwe6f",
   wsHost: import.meta.env.VITE_WS_HOST,
-  wsPort: 8080,
-  wssPort: 8080,
-  forceTLS: false,
+  wsPort: 80,
+  wssPort: 443,
+  forceTLS: true,
   enabledTransports: ["ws", "wss"],
   authorizer: (channel, options) => {
     return {
