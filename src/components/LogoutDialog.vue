@@ -20,6 +20,9 @@ const confirmLogout = async () => {
     }
   );
 
+  // refetch csrf-cookie because it has been regenerated
+  await axios.get(import.meta.env.VITE_API_BASE_URL + "/sanctum/csrf-cookie");
+
   isProcessing.value = false;
   visible.value = false;
   router.push("/");
