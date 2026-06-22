@@ -34,6 +34,14 @@ async function signup() {
   }
 
   try {
+    await axios.get(
+      import.meta.env.VITE_API_BASE_URL + "/sanctum/csrf-cookie",
+      {
+        withCredentials: true,
+        withXSRFToken: true,
+      }
+    );
+
     await axios.post(
       import.meta.env.VITE_API_BASE_URL + "/api/v2/signup",
       {
@@ -57,6 +65,20 @@ async function signup() {
         withXSRFToken: true,
       }
     );
+
+    await axios.get(
+      import.meta.env.VITE_API_BASE_URL + "/sanctum/csrf-cookie",
+      {
+        withCredentials: true,
+        withXSRFToken: true,
+      }
+    );
+
+    let me = await axios.get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
+      withCredentials: true,
+      withXSRFToken: true
+    });
+    
     router.push("/create-profile");
   } catch (e) {
     if (e.response && e.response.status == 422) {
@@ -69,23 +91,6 @@ async function signup() {
   }
 
   isProcessing.value = false;
-}
-
-async function getCsrfCookie() {
-  try {
-    await axios.get(
-      import.meta.env.VITE_API_BASE_URL + "/sanctum/csrf-cookie",
-      {
-        withCredentials: true,
-        withXSRFToken: true,
-      }
-    );
-  } catch (e) {
-    console.log(e);
-
-    errorMessage.value = e;
-    errorDialog.value.visible = true;
-  }
 }
 
 function enforcePhoneNumberFormat(e) {
@@ -126,7 +131,6 @@ async function redirectIfLoggedIn() {
 
 onMounted(async () => {
   isProcessing.value = true;
-  await getCsrfCookie();
   await redirectIfLoggedIn();
   isProcessing.value = false;
 });

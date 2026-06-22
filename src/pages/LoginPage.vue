@@ -20,10 +20,27 @@ async function login() {
 
   let formData = prepareFormData();
   if (formData) {
-    await getCsrfCookie();
-
     try {
-      await sendLoginRequest(formData);
+      await axios.get(
+        import.meta.env.VITE_API_BASE_URL + "/sanctum/csrf-cookie",
+        {
+          withCredentials: true
+        }
+      );
+
+      await axios.postForm(
+        import.meta.env.VITE_API_BASE_URL + "/login",
+        formData,
+        {
+          withCredentials: true,
+          withXSRFToken: true
+        }
+      );
+
+      await axios.get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
+        withCredentials: true,
+      });
+      
       router.push("/find-roommate");
     } catch (e) {
       console.log(e);
@@ -56,35 +73,11 @@ function prepareFormData() {
   return formData;
 }
 
-async function getCsrfCookie() {
-  try {
-    await axios.get(
-      import.meta.env.VITE_API_BASE_URL + "/sanctum/csrf-cookie",
-      {
-        withCredentials: true,
-        withXSRFToken: true,
-      }
-    );
-  } catch (e) {
-    console.log(e);
-
-    errorMessage.value = e;
-    errorDialog.value.visible = true;
-  }
-}
-
-async function sendLoginRequest(formData) {
-  await axios.postForm(import.meta.env.VITE_API_BASE_URL + "/login", formData, {
-    withCredentials: true,
-    withXSRFToken: true,
-  });
-}
-
 function handleFailedLogin(err) {
-  if (err.response.status == 422) {
+  if (err.response && err.response.status == 422) {
     validationErrors.value = err.response.data.errors;
     validationErrorDialog.value.visible = true;
-  } else if (err.response.status == 401) {
+  } else if (err.response && err.response.status == 401) {
     errorMessage.value = "No telepon atau passwordmu salah";
     errorDialog.value.visible = true;
   } else {
@@ -114,13 +107,12 @@ async function redirectIfLoggedIn() {
   try {
     await axios.get(import.meta.env.VITE_API_BASE_URL + "/api/me", {
       withCredentials: true,
-      withXSRFToken: true,
     });
     router.push("/find-roommate");
   } catch (e) {
     if (e.response && e.response.status != 401) {
-        errorMessage.value = e;
-        errorDialog.value.visible = true;
+      errorMessage.value = e;
+      errorDialog.value.visible = true;
     }
   }
 }
