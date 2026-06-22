@@ -496,6 +496,10 @@
     flex-direction: column;
   }
 
+  .landlord-form {
+    height: fit-content;
+  }
+
   .landlord-form-card {
     flex-direction: column;
   }
