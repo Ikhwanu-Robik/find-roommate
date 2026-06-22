@@ -3,6 +3,8 @@ import AuthenticatedLayout from "@/layout/AuthenticatedLayout.vue";
 import axios from "axios";
 import { onMounted, ref } from "vue";
 
+const baseUrl = ref(import.meta.env.VITE_API_BASE_URL);
+
 const isProcessing = ref(false);
 
 let self = ref(null);
@@ -64,7 +66,7 @@ onMounted(async () => {
                   <Button class="contact-button">
                     <img
                       :src="
-                        'http://api.bagisewa.com/storage/' +
+                        baseUrl + '/storage/' +
                         (chat_room.customer_profiles[0].id != self.id
                           ? chat_room.customer_profiles[0].profile_photo
                           : chat_room.customer_profiles[1].profile_photo)

@@ -5,6 +5,8 @@ import axios from "axios";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 
+const baseUrl = ref(import.meta.env.VITE_API_BASE_URL);
+
 const router = useRouter();
 const isProcessing = ref(false);
 const roommateRecommendationStore = useRoommateRecommendationStore();
@@ -55,7 +57,7 @@ async function inviteToChat(customerProfileId) {
         <template #content>
           <img
             :src="
-              'http://api.bagisewa.com/storage/' +
+              baseUrl + '/storage/' +
               user.customer_profile.profile_photo
             "
             alt="profile_photo"
