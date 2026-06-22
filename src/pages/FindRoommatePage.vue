@@ -69,10 +69,17 @@ async function joinListing() {
     if (response.status != 200) throw new Error(response.statusText);
     isProcessing.value = false;
     return true;
-  } catch (error) {
-    console.log(error);
-    errorMessage.value = error;
-    errorDialog.value.visible = true;
+  } catch (e) {
+    console.log(e);
+
+    if (e.response && e.response.status == 422) {
+        errors.value = e.response.data.errors;
+        validationErrorDialog.value.visible = true;
+    } else {
+        errorMessage.value = e;
+        errorDialog.value.visible = true;
+    }
+    
     isProcessing.value = false;
     return false;
   }
