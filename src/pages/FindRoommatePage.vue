@@ -104,13 +104,13 @@ async function search() {
         router.push("/find-roommate/profiles-recommendation");
       }
 
-      errorMessage.value = "There's no matching profiles for your criteria";
+      errorMessage.value = "There's no matching profiles for your criteria. But don't worry! Your profile is listed. So when someone feels a spark for you, they will chat!";
       errorDialog.value.visible = true;
     })
     .catch((e) => {
       console.log(e);
 
-      if (e.response.status == 422) {
+      if (e.response && e.response.status == 422) {
         errors.value = e.response.data.errors;
         validationErrorDialog.value.visible = true;
       } else {
