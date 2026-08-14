@@ -3,9 +3,7 @@ import Echo from "laravel-echo";
 
 import Pusher from "pusher-js";
 
-const pusher = Pusher;
-
-const echo = new Echo({
+const options = {
   broadcaster: "pusher",
   key: import.meta.env.VITE_PUSHER_APP_KEY,
   cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
@@ -34,6 +32,11 @@ const echo = new Echo({
       },
     };
   },
+};
+
+const echo = new Echo({
+  ...options,
+  client: new Pusher(options.key, options)
 });
 
 export default echo;
