@@ -6,13 +6,10 @@ import Pusher from "pusher-js";
 const pusher = Pusher;
 
 const echo = new Echo({
-  broadcaster: "reverb",
-  key: "ftqnzv5m2afcgjtfwe6f",
-  wsHost: import.meta.env.VITE_WS_HOST,
-  wsPort: 80,
-  wssPort: 443,
+  broadcaster: "pusher",
+  key: import.meta.env.VITE_PUSHER_APP_KEY,
+  cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
   forceTLS: true,
-  enabledTransports: ["ws", "wss"],
   authorizer: (channel, options) => {
     return {
       authorize: (socketId, callback) => {
