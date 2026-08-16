@@ -84,10 +84,7 @@ async function getSelfAndDisplay() {
     })
     .then((response) => {
       profile.value = response.data.user.profile;
-      profile_photo_path.value =
-        import.meta.env.VITE_API_BASE_URL +
-        "/storage/" +
-        profile.value.profile_photo;
+      profile_photo_path.value = profile.value.profile_photo;
     })
     .catch((error) => {
       errorMessage.value = error;

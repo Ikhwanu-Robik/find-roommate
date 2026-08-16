@@ -56,10 +56,7 @@ async function inviteToChat(customerProfileId) {
       <Card v-for="user in matchingUsers" :key="user.id" class="user-card">
         <template #content>
           <img
-            :src="
-              baseUrl + '/storage/' +
-              user.customer_profile.profile_photo
-            "
+            :src="user.customer_profile.profile_photo"
             alt="profile_photo"
             class="profile-photo"
           />

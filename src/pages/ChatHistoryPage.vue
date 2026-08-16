@@ -66,7 +66,6 @@ onMounted(async () => {
                   <Button class="contact-button">
                     <img
                       :src="
-                        baseUrl + '/storage/' +
                         (chat_room.customer_profiles[0].id != self.id
                           ? chat_room.customer_profiles[0].profile_photo
                           : chat_room.customer_profiles[1].profile_photo)
